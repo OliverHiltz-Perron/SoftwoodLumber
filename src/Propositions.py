@@ -5,11 +5,13 @@ import datetime
 import logging
 import google.generativeai as genai
 import re
+import glob
 from dotenv import load_dotenv
 load_dotenv()
 
 # --- Configuration ---
-PROMPT_FILENAME = "Proposition.md"
+# Update the path to look in the prompts folder
+PROMPT_FILENAME = os.path.join("prompts", "Proposition.md")
 PLACEHOLDER = "{content}"
 # Choose your Gemini model (e.g., 'gemini-1.5-flash-latest', 'gemini-1.5-pro-latest', 'gemini-pro')
 # See available models: https://ai.google.dev/models/gemini
@@ -266,16 +268,26 @@ def process_file(input_file_path, all_results):
     print(f"\nProcessing file: {os.path.basename(input_file_path)}")
     logging.info(f"Processing file: {input_file_path} (ID: {doc_id})")
     
-    # Read the prompt template
-    prompt_template = read_file_content(PROMPT_FILENAME)
+    # Read the prompt template - look for it in the script directory first, then try relative path
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    prompt_path = os.path.join(script_dir, PROMPT_FILENAME)
+    
+    # If not found in script directory, try looking in parent directory
+    if not os.path.exists(prompt_path):
+        prompt_path = os.path.join(script_dir, "..", PROMPT_FILENAME)
+    
+    logging.info(f"Looking for prompt template at: {prompt_path}")
+    prompt_template = read_file_content(prompt_path)
+    
     if prompt_template is None:
-        logging.error(f"Failed to read prompt template from {PROMPT_FILENAME}")
+        logging.error(f"Failed to read prompt template from {prompt_path}")
+        print(f"Error: Failed to find or read prompt template from {prompt_path}")
         return False
     
     # Check for placeholder
     if PLACEHOLDER not in prompt_template:
-        logging.error(f"Placeholder '{PLACEHOLDER}' not found in '{PROMPT_FILENAME}'.")
-        print(f"Error: Placeholder '{PLACEHOLDER}' not found in '{PROMPT_FILENAME}'.")
+        logging.error(f"Placeholder '{PLACEHOLDER}' not found in '{prompt_path}'.")
+        print(f"Error: Placeholder '{PLACEHOLDER}' not found in '{prompt_path}'.")
         return False
     
     # Read the input markdown content
@@ -295,7 +307,7 @@ def process_file(input_file_path, all_results):
         print("--- End of Generated Prompt ---")
     except KeyError as e:
         print(f"Error during formatting. Found unexpected placeholder key: {e}")
-        print(f"Ensure '{PROMPT_FILENAME}' uses exactly '{PLACEHOLDER}'.")
+        print(f"Ensure prompt template uses exactly '{PLACEHOLDER}'.")
         return False
     except Exception as e:
         print(f"An unexpected error occurred during formatting: {e}")
@@ -398,62 +410,48 @@ def main():
     # Create initial JSON file with just metadata
     save_propositions_json(all_results, append_mode=True)
     
-    # Get the input markdown file path(s)
-    if len(sys.argv) > 1:
-        # Process all files provided as arguments
-        input_files = sys.argv[1:]
-        file_count = len(input_files)
-        logging.info(f"Found {file_count} files to process from command line arguments")
-        print(f"Found {file_count} files to process")
-        
-        success_count = 0
-        error_count = 0
-        not_found_count = 0
-        
-        for index, file_path in enumerate(input_files, 1):
-            logging.info(f"Processing file {index}/{file_count}: {file_path}")
-            if os.path.exists(file_path):
-                if process_file(file_path, all_results):
-                    success_count += 1
-                else:
-                    error_count += 1
-            else:
-                logging.error(f"Input file not found: {file_path}")
-                print(f"Error: Input file '{file_path}' does not exist.")
-                not_found_count += 1
-                not_found_result = {
-                    "documentId": extract_filename(file_path),
-                    "filename": os.path.basename(file_path),
-                    "processingDate": datetime.datetime.now().isoformat(),
-                    "status": "FILE_NOT_FOUND",
-                    "propositions": []
-                }
-                all_results.append(not_found_result)
-                
-                # Save after each file is processed
-                save_propositions_json([all_results[0], not_found_result], append_mode=True)
-        
-        logging.info(f"Processing complete. Success: {success_count}, Errors: {error_count}, Not found: {not_found_count}")
-        print(f"\nProcessing complete. Successfully processed {success_count} out of {file_count} files.")
-    else:
-        # Interactive mode for a single file
-        logging.info("No command line arguments provided. Running in interactive mode.")
-        input_file_path = input("Enter the path to the input Markdown file: ")
-        logging.info(f"User entered file path: {input_file_path}")
-        
-        if not os.path.exists(input_file_path):
-            logging.error(f"Input file not found: {input_file_path}")
-            print(f"Error: Input file '{input_file_path}' does not exist.")
-            sys.exit(1)
-        
-        if process_file(input_file_path, all_results):
-            # Final save is no longer needed as we've been saving incrementally
-            # save_propositions_json(all_results)
-            print(f"\nProcessing complete. Results saved to: {OUTPUT_FILENAME}")
+    # Automatically process all .md files in the parent directory
+    parent_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+    logging.info(f"Looking for .md files in parent directory: {parent_directory}")
+    print(f"Looking for .md files in parent directory: {parent_directory}")
+    
+    # Find all .md files in the parent directory
+    input_files = glob.glob(os.path.join(parent_directory, "*.md"))
+    
+    # Filter out README.md files (case-insensitive)
+    filtered_files = []
+    for file_path in input_files:
+        filename = os.path.basename(file_path).lower()
+        if filename != "readme.md":
+            filtered_files.append(file_path)
         else:
-            logging.error("Processing failed in interactive mode")
-            print("\nProcessing failed.")
-            sys.exit(1)
+            logging.info(f"Skipping README file: {file_path}")
+            print(f"Skipping README file: {file_path}")
+    
+    file_count = len(filtered_files)
+    
+    if file_count == 0:
+        logging.warning(f"No valid .md files found in parent directory: {parent_directory}")
+        print(f"Warning: No valid .md files found in parent directory: {parent_directory}")
+        sys.exit(0)
+    
+    logging.info(f"Found {file_count} valid .md files in parent directory (excluding README)")
+    print(f"Found {file_count} valid .md files in parent directory (excluding README)")
+    
+    success_count = 0
+    error_count = 0
+    
+    for index, file_path in enumerate(filtered_files, 1):
+        logging.info(f"Processing file {index}/{file_count}: {file_path}")
+        print(f"\nProcessing file {index}/{file_count}: {os.path.basename(file_path)}")
+        
+        if process_file(file_path, all_results):
+            success_count += 1
+        else:
+            error_count += 1
+    
+    logging.info(f"Processing complete. Success: {success_count}, Errors: {error_count}")
+    print(f"\nProcessing complete. Successfully processed {success_count} out of {file_count} files.")
 
 if __name__ == "__main__":
     try:

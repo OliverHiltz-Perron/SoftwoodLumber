@@ -157,6 +157,8 @@ def main():
                       help="Directory to save the cleaned Markdown files (default: fixed_markdown)")
     parser.add_argument("--prompt", default="prompts/markdown_prompt.txt", 
                       help="Path to the prompt template file (default: prompts/markdown_prompt.txt)")
+    parser.add_argument("--ignore", default="README.md,CHANGELOG.md", 
+                      help="Comma-separated list of files to ignore (default: README.md,CHANGELOG.md)")
     
     args = parser.parse_args()
     
@@ -172,12 +174,16 @@ def main():
     # Create output directory if it doesn't exist
     os.makedirs(args.output_dir, exist_ok=True)
     
+    # Parse the ignore list
+    ignore_files = [filename.strip() for filename in args.ignore.split(',')]
+    print(f"Ignoring the following files: {', '.join(ignore_files)}")
+    
     # Get all markdown files in the parent directory
     parent_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-    markdown_files = [f for f in os.listdir(parent_dir) if f.endswith('.md')]
+    markdown_files = [f for f in os.listdir(parent_dir) if f.endswith('.md') and f not in ignore_files]
     
     if not markdown_files:
-        print("No markdown (.md) files found in the parent directory.")
+        print("No markdown (.md) files found in the parent directory (or all are ignored).")
         return
     
     # Process each markdown file
