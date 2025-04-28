@@ -216,7 +216,7 @@ def main():
         return
         
     # Define the prompt for Gemini
-    with open("../prompts/MarkdownToJson.txt", "r", encoding="utf-8") as f:
+    with open("prompts/markdown_to_json.txt", "r", encoding="utf-8") as f:
         prompt = f.read()
     # Create processor with the API key
     processor = MarkdownProcessor(api_key)
@@ -224,8 +224,8 @@ def main():
     # Create output directory if it doesn't exist
     os.makedirs('output', exist_ok=True)
     
-    # Get all markdown files in the current directory
-    markdown_files = [f for f in os.listdir('.') if f.endswith('.md')]
+    # Get all markdown files in the parent directory
+    markdown_files = [f for f in os.listdir('..') if f.endswith('.md')]
     
     if not markdown_files:
         print("No markdown (.md) files found in the current directory.")

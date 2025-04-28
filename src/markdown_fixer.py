@@ -75,35 +75,11 @@ def create_prompt(markdown_content, prompt_template):
     # Replace the placeholder with the actual markdown content
     return prompt_template.replace("{markdown_content}", markdown_content)
 
-def create_prompt(markdown_content):
-    """Creates the prompt for the Gemini API."""
-    prompt = f"""
-You are an expert Markdown formatter specializing in cleaning up text converted from PDF documents.
-The following text is Markdown generated from a PDF. It likely contains numerous formatting errors.
-
-Your task is to meticulously clean and reformat this Markdown text. Focus specifically on:
-1.  **Joining Lines:** Combine lines within paragraphs that were incorrectly broken by the PDF conversion. Preserve intentional paragraph breaks (usually indicated by double line breaks in the source).
-2.  **Removing Hyphenation:** Rejoin words that were hyphenated across lines in the original PDF.
-3.  **Removing Extraneous Elements:** Identify and delete recurring headers, footers, page numbers, or other non-content artifacts from the PDF conversion.
-4.  **Standardizing Formatting:** Ensure consistent and correct Markdown syntax for headings (using '#'), lists (using '*' or '1.'), code blocks (using '```'), blockquotes (using '>'), bold (**text**), and italics (*text*).
-5.  **Fixing Tables:** If possible, identify text that represents tables and format it correctly using Markdown table syntax (| Header | Header | \n|---|---| \n| Cell | Cell |). If table reconstruction is too complex or ambiguous, leave the text as is but clean up surrounding formatting.
-6.  **Correcting Spacing:** Ensure appropriate spacing around punctuation, headings, lists, and other Markdown elements. Remove excessive whitespace.
-7.  **Preserving Content:** Do *not* add, remove, or significantly change the meaning of the original text. Your goal is strictly formatting cleanup.
-
-**Output ONLY the cleaned Markdown text.** Do not include any introductory phrases, explanations, or apologies in your response. Start directly with the corrected Markdown.
-
-Here is the Markdown text to clean:
---- START OF MARKDOWN ---
-{markdown_content}
---- END OF MARKDOWN ---
-"""
-    return prompt
 
 def fix_markdown_with_gemini(markdown_content):
     """Sends the markdown to Gemini for fixing and returns the cleaned version."""
     if not API_KEY:
         print("Error: GOOGLE_API_KEY environment variable not set.")
-        print("Please set the environment variable or provide the key directly in the script (less secure).")
         sys.exit(1)
 
     try:
