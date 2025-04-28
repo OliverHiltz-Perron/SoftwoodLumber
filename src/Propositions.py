@@ -410,13 +410,22 @@ def main():
     # Create initial JSON file with just metadata
     save_propositions_json(all_results, append_mode=True)
     
-    # Automatically process all .md files in the parent directory
+    # Get parent directory path
     parent_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-    logging.info(f"Looking for .md files in parent directory: {parent_directory}")
-    print(f"Looking for .md files in parent directory: {parent_directory}")
     
-    # Find all .md files in the parent directory
-    input_files = glob.glob(os.path.join(parent_directory, "*.md"))
+    # Check if fixed_markdown directory exists
+    fixed_markdown_dir = os.path.join(parent_directory, "fixed_markdown")
+    
+    if os.path.exists(fixed_markdown_dir) and os.path.isdir(fixed_markdown_dir):
+        logging.info(f"The 'fixed_markdown' folder exists. Using markdown files from this folder.")
+        print(f"The 'fixed_markdown' folder exists. Using markdown files from this folder.")
+        # Get all markdown files from the fixed_markdown folder
+        input_files = glob.glob(os.path.join(fixed_markdown_dir, "*.md"))
+    else:
+        logging.info(f"No 'fixed_markdown' folder found. Using markdown files from the parent directory.")
+        print(f"No 'fixed_markdown' folder found. Using markdown files from the parent directory.")
+        # Get all markdown files from the parent directory
+        input_files = glob.glob(os.path.join(parent_directory, "*.md"))
     
     # Filter out README.md files (case-insensitive)
     filtered_files = []
@@ -431,12 +440,12 @@ def main():
     file_count = len(filtered_files)
     
     if file_count == 0:
-        logging.warning(f"No valid .md files found in parent directory: {parent_directory}")
-        print(f"Warning: No valid .md files found in parent directory: {parent_directory}")
+        logging.warning(f"No valid .md files found in the search directory")
+        print(f"Warning: No valid .md files found in the search directory")
         sys.exit(0)
     
-    logging.info(f"Found {file_count} valid .md files in parent directory (excluding README)")
-    print(f"Found {file_count} valid .md files in parent directory (excluding README)")
+    logging.info(f"Found {file_count} valid .md files (excluding README)")
+    print(f"Found {file_count} valid .md files (excluding README)")
     
     success_count = 0
     error_count = 0
