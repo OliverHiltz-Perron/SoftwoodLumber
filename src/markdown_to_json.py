@@ -224,18 +224,26 @@ def main():
     # Create output directory if it doesn't exist
     os.makedirs('output', exist_ok=True)
     
-    # Get all markdown files in the parent directory
-    markdown_files = [f for f in os.listdir('..') if f.endswith('.md')]
+    # Check if fixed_markdown folder exists in the current directory
+    fixed_markdown_dir = 'fixed_markdown'
+    if os.path.exists(fixed_markdown_dir) and os.path.isdir(fixed_markdown_dir):
+        print(f"The 'fixed_markdown' folder exists. Using markdown files from this folder.")
+        # Get all markdown files from the fixed_markdown folder, ignoring README.md
+        markdown_files = [os.path.join(fixed_markdown_dir, f) for f in os.listdir(fixed_markdown_dir) 
+                          if f.endswith('.md') and f.lower() != 'readme.md']
+    else:
+        print("No 'fixed_markdown' folder found. Using markdown files from the current directory.")
+        # Get all markdown files from the current directory, ignoring README.md
+        markdown_files = [f for f in os.listdir() if f.endswith('.md') and f.lower() != 'readme.md']
     
     if not markdown_files:
-        print("No markdown (.md) files found in the current directory.")
-        print("Please make sure your markdown files are in the same directory as this script.")
+        print("No markdown (.md) files found.")
         return
     
     # Process each markdown file
     for markdown_file in markdown_files:
         # Create the output file name
-        output_file = os.path.join('output', os.path.splitext(markdown_file)[0] + '.json')
+        output_file = os.path.join('output', os.path.splitext(os.path.basename(markdown_file))[0] + '.json')
 
         # Process the file
         print(f"\n{'='*50}\nProcessing: {markdown_file}\n{'='*50}")
