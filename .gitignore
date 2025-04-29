@@ -11,6 +11,10 @@
 # Ignore all markdown files
 *.md
 
+*.venv
+
 output/
 fixed_markdown/
 !/prompts/Proposition.md
+*.zip
+*.log
