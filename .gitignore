@@ -18,3 +18,4 @@ fixed_markdown/
 !/prompts/Proposition.md
 *.zip
 *.log
+EmbeddedData/
