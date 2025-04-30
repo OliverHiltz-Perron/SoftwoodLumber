@@ -2,6 +2,7 @@ import os
 import re
 import google.generativeai as genai
 from dotenv import load_dotenv
+import sys
 
 # Load environment variables from .env file
 load_dotenv()
@@ -35,10 +36,10 @@ class MarkdownFixer:
             with open(filepath, 'r', encoding='utf-8') as f:
                 return f.read()
         except FileNotFoundError:
-            print(f"Error: Input file not found at '{filepath}'")
+            print(f"Error: Input file not found at '{filepath}'", file=sys.stderr)
             return None
         except Exception as e:
-            print(f"Error reading file '{filepath}': {e}")
+            print(f"Error reading file '{filepath}': {e}", file=sys.stderr)
             return None
 
     def write_file(self, filepath, content):
@@ -49,10 +50,10 @@ class MarkdownFixer:
             
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(content)
-            print(f"Successfully wrote cleaned markdown to '{filepath}'")
+            print(f"Successfully wrote cleaned markdown to '{filepath}'", file=sys.stderr)
             return True
         except Exception as e:
-            print(f"Error writing file '{filepath}': {e}")
+            print(f"Error writing file '{filepath}': {e}", file=sys.stderr)
             return False
 
     def read_prompt_template(self, prompt_path):
@@ -61,10 +62,10 @@ class MarkdownFixer:
             with open(prompt_path, 'r', encoding='utf-8') as f:
                 return f.read()
         except FileNotFoundError:
-            print(f"Error: Prompt template file not found at '{prompt_path}'")
+            print(f"Error: Prompt template file not found at '{prompt_path}'", file=sys.stderr)
             return None
         except Exception as e:
-            print(f"Error reading prompt template '{prompt_path}': {e}")
+            print(f"Error reading prompt template '{prompt_path}': {e}", file=sys.stderr)
             return None
 
     def create_prompt(self, markdown_content, prompt_template):
@@ -75,12 +76,12 @@ class MarkdownFixer:
     def fix_markdown_with_gemini(self, markdown_content, prompt_template):
         """Sends the markdown to Gemini for fixing and returns the cleaned version."""
         if not self.api_key:
-            print("Error: GEMINI_API_KEY environment variable not set.")
+            print("Error: GEMINI_API_KEY environment variable not set.", file=sys.stderr)
             return None
 
         try:
             prompt = self.create_prompt(markdown_content, prompt_template)
-            print("Sending request to Gemini API...")
+            print("Sending request to Gemini API...", file=sys.stderr)
 
             # Add retries for potential transient API issues
             max_retries = 3
@@ -93,72 +94,70 @@ class MarkdownFixer:
                         block_reason = "Unknown"
                         if hasattr(response, 'prompt_feedback') and hasattr(response.prompt_feedback, 'block_reason'):
                             block_reason = response.prompt_feedback.block_reason
-                        print(f"Warning: Gemini response was empty or blocked. Reason: {block_reason}")
+                        print(f"Warning: Gemini response was empty or blocked. Reason: {block_reason}", file=sys.stderr)
                         # If blocked, return original
                         return markdown_content
 
                     cleaned_markdown = response.text
-                    print("Received response from Gemini.")
+                    print("Received response from Gemini.", file=sys.stderr)
                     return cleaned_markdown
 
                 except Exception as e:
-                    print(f"Error during Gemini API call (Attempt {attempt + 1}/{max_retries}): {e}")
+                    print(f"Error during Gemini API call (Attempt {attempt + 1}/{max_retries}): {e}", file=sys.stderr)
                     if attempt < max_retries - 1:
                         # Exponential backoff
                         import time
                         time.sleep(2 ** attempt)
                     else:
-                        print("Max retries reached. Failed to get response from Gemini.")
+                        print("Max retries reached. Failed to get response from Gemini.", file=sys.stderr)
                         raise  # Re-raise the last exception
 
         except Exception as e:
-            print(f"An error occurred while interacting with the Gemini API: {e}")
+            print(f"An error occurred while interacting with the Gemini API: {e}", file=sys.stderr)
             return None
 
-    def process_markdown_file(self, input_file, output_file, prompt_template):
-        """Process a single markdown file and fix its formatting"""
+    def process_markdown_content(self, markdown_content, prompt_template):
+        """Process markdown content and fix its formatting"""
         try:
-            # Read the Markdown file
-            markdown_content = self.read_file(input_file)
             if not markdown_content:
-                print("Input file is empty or could not be read. Exiting.")
-                return False
+                print("Input content is empty. Exiting.", file=sys.stderr)
+                return None
                 
-            print(f"Attempting to fix formatting using Gemini (Model: gemini-2.5-flash-preview-04-17)...")
+            print(f"Attempting to fix formatting using Gemini (Model: gemini-2.5-flash-preview-04-17)...", file=sys.stderr)
             cleaned_markdown = self.fix_markdown_with_gemini(markdown_content, prompt_template)
 
             if not cleaned_markdown:
-                print("Gemini did not return valid content. No output file written.")
-                return False
+                print("Gemini did not return valid content.", file=sys.stderr)
+                return None
                 
             # Basic check if Gemini returned something substantially different
             if cleaned_markdown.strip() != markdown_content.strip():
-                return self.write_file(output_file, cleaned_markdown)
+                return cleaned_markdown
             else:
-                print("Gemini returned content identical to the input (or only whitespace changes). Writing original content.")
-                return self.write_file(output_file, markdown_content)
+                print("Gemini returned content identical to the input (or only whitespace changes). Using original content.", file=sys.stderr)
+                return markdown_content
                 
         except Exception as e:
-            print(f"An error occurred: {e}")
-            return False
+            print(f"An error occurred: {e}", file=sys.stderr)
+            return None
 
 
 def main():
     # Set your Gemini API key from environment
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        print("Error: Please set the GEMINI_API_KEY environment variable.")
-        return
+        print("Error: Please set the GEMINI_API_KEY environment variable.", file=sys.stderr)
+        return 1
     
     import argparse
     
     parser = argparse.ArgumentParser(description="Clean up Markdown formatting issues using the Gemini API.")
-    parser.add_argument("--output-dir", default="fixed_markdown", 
-                      help="Directory to save the cleaned Markdown files (default: fixed_markdown)")
+    parser.add_argument("-i", "--input", default="-", 
+                      help="Input Markdown file path. Use '-' for stdin (default)")
+    parser.add_argument("-o", "--output", default="-", 
+                      help="Output file path. Use '-' for stdout (default)")
     parser.add_argument("--prompt", default="prompts/markdown_prompt.txt", 
                       help="Path to the prompt template file (default: prompts/markdown_prompt.txt)")
-    parser.add_argument("--ignore", default="README.md,CHANGELOG.md", 
-                      help="Comma-separated list of files to ignore (default: README.md,CHANGELOG.md)")
     
     args = parser.parse_args()
     
@@ -166,47 +165,40 @@ def main():
     fixer = MarkdownFixer(api_key)
     
     # Read the prompt template
-    print(f"Reading prompt template from: {args.prompt}")
+    print(f"Reading prompt template from: {args.prompt}", file=sys.stderr)
     prompt_template = fixer.read_prompt_template(args.prompt)
     if not prompt_template:
-        return
+        return 1
     
-    # Create output directory if it doesn't exist
-    os.makedirs(args.output_dir, exist_ok=True)
-    
-    # Parse the ignore list
-    ignore_files = [filename.strip() for filename in args.ignore.split(',')]
-    print(f"Ignoring the following files: {', '.join(ignore_files)}")
-    
-    # Get all markdown files in the parent directory
-    parent_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-    markdown_files = [f for f in os.listdir(parent_dir) if f.endswith('.md') and f not in ignore_files]
-    
-    if not markdown_files:
-        print("No markdown (.md) files found in the parent directory (or all are ignored).")
-        return
-    
-    # Process each markdown file
-    success_count = 0
-    failure_count = 0
-    
-    for markdown_file in markdown_files:
-        # Create full paths
-        input_path = os.path.join(parent_dir, markdown_file)
-        output_path = os.path.join(args.output_dir, markdown_file)
+    # Read input
+    if args.input == '-':
+        print("Reading from stdin...", file=sys.stderr)
+        markdown_content = sys.stdin.read()
+    else:
+        print(f"Reading from file: {args.input}", file=sys.stderr)
+        markdown_content = fixer.read_file(args.input)
         
-        # Process the file
-        print(f"\n{'='*50}\nProcessing: {markdown_file}\n{'='*50}")
-        success = fixer.process_markdown_file(input_path, output_path, prompt_template)
-        
-        if success:
-            success_count += 1
-        else:
-            failure_count += 1
+    if not markdown_content:
+        print("Input is empty or could not be read. Exiting.", file=sys.stderr)
+        return 1
     
-    print(f"\nProcessing complete! {success_count} files processed successfully, {failure_count} failed.")
-    print(f"Check the '{args.output_dir}' directory for the cleaned markdown files.")
-
+    # Process the content
+    cleaned_markdown = fixer.process_markdown_content(markdown_content, prompt_template)
+    
+    if not cleaned_markdown:
+        print("Processing failed. No output generated.", file=sys.stderr)
+        return 1
+    
+    # Output
+    if args.output == '-':
+        sys.stdout.write(cleaned_markdown)
+    else:
+        success = fixer.write_file(args.output, cleaned_markdown)
+        if not success:
+            return 1
+    
+    print("Processing complete.", file=sys.stderr)
+    return 0
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

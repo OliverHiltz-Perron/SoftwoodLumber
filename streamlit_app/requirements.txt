@@ -1,8 +1,0 @@
-streamlit>=1.27.0
-google-generativeai>=0.3.0
-python-dotenv>=1.0.0
-pandas>=2.0.0
-torch>=2.0.0
-transformers>=4.36.0
-llama-cloud-services>=0.1.0
-nest-asyncio>=1.5.7
