@@ -7,7 +7,7 @@ import datetime
 import time
 from pathlib import Path
 
-# Function to set up logging
+# Setup logging
 def setup_logging(log_file="proposition_extraction.log"):
     """Configure logging for the application."""
     log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "streamlit_app", "data", "logs")
@@ -307,3 +307,21 @@ Here is the document to analyze:
 {content}
 
 Now extract the key propositions related to wood, timber, or lumber from this text:"""
+
+# Also define the PropositionExtractionService class to maintain compatibility
+class PropositionExtractionService:
+    """Service class for extracting propositions from markdown content."""
+    
+    def __init__(self):
+        self.log_path = setup_logging()
+    
+    def process_file(self, file_path, prompt_template, model_name, api_key, all_results, status_callback=None, progress_callback=None, temperature=0.2, max_tokens=65536):
+        return process_file(file_path, prompt_template, model_name, api_key, all_results, status_callback, progress_callback, temperature, max_tokens)
+    
+    @staticmethod
+    def save_proposition_results(results, output_dir=None):
+        return save_proposition_results(results, output_dir)
+    
+    @staticmethod
+    def get_default_prompt_template():
+        return get_default_prompt_template()

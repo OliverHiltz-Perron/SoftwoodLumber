@@ -3,11 +3,14 @@ import sys
 import os
 import json
 
-# Add the parent directory to sys.path so we can import from src/
+# Add the parent directory to sys.path so we can import from src/ and backend/
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import utilities for shared file storage
 from streamlit_app.utils import display_shared_data_status, advanced_file_selector
+
+# Import backend services
+from backend.proposition_extractor import PropositionExtractionService
 
 st.set_page_config(
     page_title="Softwood Lumber Analysis Tool",
@@ -15,6 +18,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Initialize backend services
+proposition_service = PropositionExtractionService()
 
 # Display shared data status in sidebar
 display_shared_data_status()

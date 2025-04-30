@@ -3,14 +3,14 @@ import sys
 import os
 import tempfile
 import json
-import re
 import glob
 import logging
 import datetime
 import time
 from pathlib import Path
+from backend.proposition_extractor import PropositionExtractionService
 
-# Add the parent directory to sys.path so we can import from src/
+# Add the parent directory to sys.path so we can import from backend/
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 # Import utilities for shared file storage
@@ -20,6 +20,18 @@ from streamlit_app.utils import (
     get_all_files_by_type,
     FIXED_MARKDOWN_DIR,
     PROPOSITIONS_DIR
+)
+
+# Import the backend processing functions
+from backend.proposition_extractor import (
+    setup_logging,
+    read_file_content,
+    extract_filename,
+    find_text_for_proposition,
+    call_gemini,
+    process_file,
+    save_proposition_results,
+    get_default_prompt_template
 )
 
 st.set_page_config(
@@ -34,261 +46,6 @@ st.markdown("""
 This tool extracts key propositions from documents related to the softwood lumber industry.
 Upload your Markdown files, and the tool will identify important statements and claims about wood, timber, lumber, or forestry products.
 """)
-
-# Setup logging
-def setup_logging(log_file="proposition_extraction.log"):
-    """Configure logging for the application."""
-    log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "logs")
-    os.makedirs(log_dir, exist_ok=True)
-    log_path = os.path.join(log_dir, log_file)
-    
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler(log_path),
-            logging.StreamHandler()
-        ]
-    )
-    
-    logging.info("="*50)
-    logging.info(f"Starting proposition extraction")
-    logging.info("="*50)
-    
-    return log_path
-
-# Helper function to read file content
-def read_file_content(filepath):
-    """Reads the entire content of a file."""
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return f.read()
-    except FileNotFoundError:
-        st.error(f"Error: File not found at '{filepath}'")
-        return None
-    except Exception as e:
-        st.error(f"Error reading file '{filepath}': {e}")
-        return None
-
-# Helper function to extract filename-based document ID
-def extract_filename(filepath):
-    """
-    Extracts document ID from a filepath.
-    Uses leading numbers from the filename, or first 10 characters if no numbers exist.
-    """
-    # Get just the base filename without extension
-    base_name = os.path.basename(filepath)
-    filename_without_ext = os.path.splitext(base_name)[0]
-    
-    # Extract leading numbers using regex
-    leading_numbers = re.match(r'^(\d+)', filename_without_ext)
-    
-    if leading_numbers:
-        # If there are leading numbers, use them as document ID
-        doc_id = leading_numbers.group(1)
-        logging.debug(f"Extracted document ID '{doc_id}' from filename '{base_name}'")
-    else:
-        # If no leading numbers, use first 10 characters (or all if < 10)
-        doc_id = filename_without_ext[:10]
-        logging.debug(f"No leading numbers found, using first 10 chars: '{doc_id}' from '{base_name}'")
-    
-    return doc_id
-
-# Helper function to find original text for a proposition
-def find_text_for_proposition(original_text, proposition):
-    """Attempts to find the original text that led to a proposition.
-    Returns a snippet of text containing the proposition source."""
-    # Simple heuristic: Find sentences or paragraphs that contain key terms from the proposition
-    
-    # Split the proposition into significant words (excluding common words)
-    common_words = {'the', 'and', 'a', 'an', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'as', 'is', 'are', 'be'}
-    significant_words = [word.lower() for word in proposition.split() if word.lower() not in common_words and len(word) > 3]
-    
-    # If no significant words, return a default message
-    if not significant_words:
-        return "Source context not identified"
-    
-    # Split the original text into paragraphs
-    paragraphs = original_text.split('\n\n')
-    
-    best_match = None
-    highest_score = 0
-    
-    for paragraph in paragraphs:
-        if not paragraph.strip():
-            continue
-            
-        paragraph_lower = paragraph.lower()
-        score = 0
-        
-        # Calculate how many significant words appear in this paragraph
-        for word in significant_words:
-            if word in paragraph_lower:
-                score += 1
-        
-        # Calculate match percentage
-        match_percentage = score / len(significant_words) if significant_words else 0
-        
-        # Update best match if this paragraph has a higher score
-        if match_percentage > highest_score:
-            highest_score = match_percentage
-            best_match = paragraph
-    
-    # If we found a reasonable match
-    if highest_score > 0.3 and best_match:
-        # Truncate if too long
-        if len(best_match) > 250:
-            words = best_match.split()
-            if len(words) > 50:
-                best_match = ' '.join(words[:50]) + '...'
-        return best_match.strip()
-    
-    return "Source context not clearly identified"
-
-# Function to call Gemini API
-def call_gemini(prompt_text, model_name, api_key, temperature=0.2, max_tokens=65536):
-    """Sends the prompt to the specified Gemini model and returns the response."""
-    try:
-        # Configure the API key
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-
-        # Initialize the Generative Model
-        logging.info(f"Initializing Gemini model: {model_name}")
-        model = genai.GenerativeModel(model_name)
-
-        # Set generation config
-        generation_config = {
-            "max_output_tokens": max_tokens,
-            "temperature": temperature
-        }
-        logging.debug(f"Generation config: {generation_config}")
-
-        # Generate content
-        prompt_length = len(prompt_text)
-        logging.info(f"Sending prompt to Gemini (length: {prompt_length} characters)")
-        
-        start_time = datetime.datetime.now()
-        response = model.generate_content(
-            prompt_text,
-            generation_config=generation_config
-        )
-        end_time = datetime.datetime.now()
-        duration = (end_time - start_time).total_seconds()
-        
-        logging.info(f"Received response from Gemini in {duration:.2f} seconds")
-
-        # Handle potential safety blocks or empty responses
-        if not response.parts:
-            if response.prompt_feedback and response.prompt_feedback.block_reason:
-                error_msg = f"Call blocked due to safety settings. Reason: {response.prompt_feedback.block_reason}"
-                logging.error(error_msg)
-                st.error(f"Error: {error_msg}")
-                return None
-            else:
-                logging.error("Received an empty response from the API")
-                st.error("Error: Received an empty response from the API.")
-                return None
-
-        response_text = response.text
-        logging.info(f"Received response of length: {len(response_text)} characters")
-        return response_text
-
-    except Exception as e:
-        error_msg = f"An error occurred during the Gemini API call: {str(e)}"
-        logging.exception(error_msg)
-        st.error(error_msg)
-        return None
-
-# Function to process a single file
-def process_file(file_path, prompt_template, model_name, api_key, all_results, status_text=None, progress_bar=None):
-    """Process a single file and extract propositions."""
-    # Get document ID from filename
-    doc_id = extract_filename(file_path)
-    logging.info(f"Processing file: {file_path} (ID: {doc_id})")
-    
-    if status_text:
-        status_text.text(f"Processing: {os.path.basename(file_path)}")
-    
-    # Read the input markdown content
-    input_content = read_file_content(file_path)
-    if input_content is None:
-        logging.error(f"Failed to read content from {file_path}")
-        return False
-    
-    # Log file size and character count
-    logging.info(f"File size: {os.path.getsize(file_path)} bytes, {len(input_content)} characters")
-    
-    # Create the final prompt
-    try:
-        placeholder = "{content}"
-        if placeholder not in prompt_template:
-            st.error(f"Placeholder '{placeholder}' not found in prompt template.")
-            return False
-            
-        final_prompt = prompt_template.replace(placeholder, input_content)
-    except Exception as e:
-        st.error(f"An error formatting the prompt: {e}")
-        return False
-    
-    # Call the Gemini API
-    gemini_response = call_gemini(final_prompt, model_name, api_key)
-    
-    # Process and save the response
-    if gemini_response:
-        # Process the propositions for JSON format
-        process_result = {
-            "documentId": doc_id,
-            "filename": os.path.basename(file_path),
-            "processingDate": datetime.datetime.now().isoformat(),
-            "propositions": []
-        }
-        
-        # Check if the response is "NA" (not applicable)
-        if gemini_response.strip() == "NA":
-            logging.info(f"Document '{doc_id}' marked as not relevant to wood industry")
-            if status_text:
-                status_text.text(f"No propositions found for {doc_id} (not relevant to wood industry)")
-            process_result["status"] = "NOT_RELEVANT"
-            all_results.append(process_result)
-            return True
-        
-        # Split the response by semicolons
-        propositions = [p.strip() for p in gemini_response.split(';') if p.strip()]
-        logging.info(f"Extracted {len(propositions)} propositions from {doc_id}")
-        
-        # Process each proposition
-        for i, proposition in enumerate(propositions, 1):
-            proposition_id = f"{doc_id}_{i}"
-            source_text = find_text_for_proposition(input_content, proposition)
-            
-            process_result["propositions"].append({
-                "id": proposition_id,
-                "text": proposition,
-                "sourceText": source_text
-            })
-            logging.debug(f"Added proposition {proposition_id}")
-        
-        process_result["status"] = "SUCCESS"
-        process_result["count"] = len(propositions)
-        all_results.append(process_result)
-        
-        if status_text:
-            status_text.text(f"Processed {len(propositions)} propositions from {os.path.basename(file_path)}")
-            
-        return True
-    else:
-        logging.error(f"Failed to get response from Gemini for {doc_id}")
-        
-        error_result = {
-            "documentId": doc_id,
-            "filename": os.path.basename(file_path),
-            "processingDate": datetime.datetime.now().isoformat(),
-            "status": "ERROR",
-            "propositions": []
-        }
-        all_results.append(error_result)
-        return False
 
 # Check for required environment variables
 from dotenv import load_dotenv
@@ -341,8 +98,8 @@ if st.session_state.gemini_api_key:
         # Initialize logging
         log_file_path = setup_logging()
         
-        # Load prompt template
-        prompt_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'prompts', 'Proposition.md')
+        # Load prompt template - adjust paths to match your structure
+        prompt_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'prompts', 'Proposition.md')
         
         prompt_template = None
         if os.path.exists(prompt_path):
@@ -354,25 +111,7 @@ if st.session_state.gemini_api_key:
                 st.warning(f"Could not read prompt template file: {str(e)}. Using default prompt.")
         
         if not prompt_template:
-            prompt_template = """You are analyzing a document to extract propositions related to the wood industry, lumber, timber, building with wood, or wood manufacturing.
-
-A proposition is a declarative statement that makes a claim or assertion that can be judged as true or false. Focus on extracting key claims about wood, timber, lumber, or forestry products in construction, manufacturing, or industry.
-
-For this task:
-1. Extract ONLY propositions specifically related to wood, timber, lumber usage, or wood products.
-2. Focus on statements of fact, industry trends, market conditions, technical properties, or forecasts.
-3. Ignore statements that are purely descriptive and don't make clear claims.
-4. Do not extract general statements that are not specifically about wood/timber/lumber.
-5. Extract only complete, standalone propositions - not fragments or partial thoughts.
-6. Use exact wording from the text, but make minor adjustments if needed for clarity.
-7. Separate each distinct proposition with a semicolon (;).
-8. If the document contains no relevant propositions about wood/lumber/timber, respond with "NA".
-
-Here is the document to analyze:
-
-{content}
-
-Now extract the key propositions related to wood, timber, or lumber from this text:"""
+            prompt_template = get_default_prompt_template()
             st.info("Using default proposition extraction prompt. To customize, create prompts/Proposition.md.")
         
         # Option to view/edit prompt template
@@ -510,19 +249,22 @@ Now extract the key propositions related to wood, timber, or lumber from this te
                 }
                 results.append(metadata)
                 
-                # Create output directory if it doesn't exist
-                output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "propositions")
-                os.makedirs(output_dir, exist_ok=True)
-                
                 # Process each file
                 success_count = 0
                 error_count = 0
                 
+                # Create callbacks for progress updates
+                def update_status(text):
+                    status_text.text(text)
+                
+                def update_progress(value):
+                    progress_bar.progress(value)
+                
                 for i, file_path in enumerate(files_to_process):
                     # Update progress
                     progress = (i / len(files_to_process))
-                    progress_bar.progress(progress)
-                    status_text.text(f"Processing {os.path.basename(file_path)}... ({i+1}/{len(files_to_process)})")
+                    update_progress(progress)
+                    update_status(f"Processing {os.path.basename(file_path)}... ({i+1}/{len(files_to_process)})")
                     
                     try:
                         if process_file(
@@ -531,18 +273,12 @@ Now extract the key propositions related to wood, timber, or lumber from this te
                             model_name, 
                             st.session_state.gemini_api_key, 
                             results,
-                            status_text=status_text,
-                            progress_bar=progress_bar
+                            status_callback=update_status,
+                            progress_callback=update_progress,
+                            temperature=temperature,
+                            max_tokens=max_tokens
                         ):
                             success_count += 1
-                            
-                            # Save individual file result
-                            doc_result = results[-1]  # Get the most recently added result
-                            json_filename = f"{os.path.splitext(os.path.basename(file_path))[0]}_propositions.json"
-                            output_path = os.path.join(output_dir, json_filename)
-                            
-                            with open(output_path, 'w', encoding='utf-8') as f:
-                                json.dump(doc_result, f, indent=2)
                         else:
                             error_count += 1
                             
@@ -555,12 +291,8 @@ Now extract the key propositions related to wood, timber, or lumber from this te
                 progress_bar.progress(1.0)
                 status_text.text(f"Processing complete! {success_count} files processed successfully, {error_count} failed.")
                 
-                # Save the combined results JSON
-                combined_json_filename = f"extracted_propositions_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-                combined_json_path = os.path.join(output_dir, combined_json_filename)
-                
-                with open(combined_json_path, 'w', encoding='utf-8') as f:
-                    json.dump(results, f, indent=2)
+                # Save results
+                combined_json_path = save_proposition_results(results)
                 
                 # Display results
                 if len(results) > 1:  # More than just metadata
@@ -574,7 +306,7 @@ Now extract the key propositions related to wood, timber, or lumber from this te
                     st.download_button(
                         label="Download All Propositions (JSON)",
                         data=json_content,
-                        file_name=combined_json_filename,
+                        file_name=os.path.basename(combined_json_path),
                         mime="application/json",
                         key="download_all_json"
                     )
@@ -593,6 +325,7 @@ Now extract the key propositions related to wood, timber, or lumber from this te
                                         st.divider()
                                         
                                 # Add download link for individual file
+                                output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "propositions")
                                 doc_json_path = os.path.join(output_dir, f"{os.path.splitext(doc['filename'])[0]}_propositions.json")
                                 if os.path.exists(doc_json_path):
                                     with open(doc_json_path, 'r', encoding='utf-8') as f:
