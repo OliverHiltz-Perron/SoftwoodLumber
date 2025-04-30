@@ -1,0 +1,133 @@
+2025-04-29 10:05:55,153 - Pipeline - INFO - Starting SoftwoodLumber pipeline
+2025-04-29 10:05:55,156 - Pipeline - INFO - STAGE 1: Converting document to Markdown using LlamaParse
+2025-04-29 10:05:55,156 - Pipeline - INFO - Running command: C:\Users\olive\OneDrive\Desktop\SoftwoodLumber\testing\Scripts\python.exe src/llamaparse_converter.py -i testing.pdf -o fixed_markdown
+2025-04-29 10:05:55,364 - Pipeline - ERROR - LlamaParse conversion failed with code 2
+2025-04-29 10:05:55,364 - Pipeline - ERROR - Error output: C:\Users\olive\OneDrive\Desktop\SoftwoodLumber\testing\Scripts\python.exe: can't open file 'C:\\Users\\olive\\OneDrive\\Desktop\\SoftwoodLumber\\src\\llamaparse_converter.py': [Errno 2] No such file or directory
+
+2025-04-29 10:05:55,365 - Pipeline - ERROR - Stage 1 failed. Exiting pipeline.
+2025-04-29 10:06:49,226 - Pipeline - INFO - Starting SoftwoodLumber pipeline
+2025-04-29 10:06:49,235 - Pipeline - INFO - STAGE 1: Converting document to Markdown using LlamaParse
+2025-04-29 10:06:49,235 - Pipeline - INFO - Running command: C:\Users\olive\OneDrive\Desktop\SoftwoodLumber\testing\Scripts\python.exe src/llamaparse_converter.py -i testing.pdf -o fixed_markdown
+2025-04-29 10:06:57,890 - Pipeline - INFO - Document conversion completed
+2025-04-29 10:06:57,891 - Pipeline - ERROR - No markdown files were generated
+2025-04-29 10:06:57,892 - Pipeline - ERROR - Stage 1 failed. Exiting pipeline.
+2025-04-29 10:09:46,386 - Pipeline - INFO - Starting SoftwoodLumber pipeline
+2025-04-29 10:09:46,388 - Pipeline - INFO - STAGE 1: Converting document to Markdown using LlamaParse
+2025-04-29 10:09:46,388 - Pipeline - INFO - Running command: C:\Users\olive\OneDrive\Desktop\SoftwoodLumber\testing\Scripts\python.exe src/llamaparse_converter.py -i testing.pdf -o fixed_markdown
+2025-04-29 10:09:54,586 - Pipeline - ERROR - LlamaParse conversion failed with code 2
+2025-04-29 10:09:54,587 - Pipeline - ERROR - Error output: usage: llamaparse_converter.py [-h] --input INPUT [--output_dir OUTPUT_DIR]
+                               [--skip_stages SKIP_STAGES] [--query QUERY]
+                               [--embeddings_file EMBEDDINGS_FILE]
+                               [--threshold THRESHOLD]
+llamaparse_converter.py: error: the following arguments are required: --input
+
+2025-04-29 10:09:54,587 - Pipeline - ERROR - Stage 1 failed. Exiting pipeline.
+2025-04-29 10:25:58,504 - SoftwoodLumber - INFO - Starting SoftwoodLumber Pipeline Runner
+2025-04-29 10:25:58,507 - SoftwoodLumber.Pipeline - INFO - Initialized SoftwoodLumber pipeline with output directory: output
+2025-04-29 10:25:58,507 - SoftwoodLumber.Pipeline - INFO - Starting pipeline for input file: testing.pdf
+2025-04-29 10:25:58,508 - SoftwoodLumber.Pipeline - INFO - Skipping stages: None
+2025-04-29 10:25:58,508 - SoftwoodLumber.Pipeline - INFO - STAGE 1: Converting document to Markdown
+2025-04-29 10:25:58,509 - SoftwoodLumber.DocumentConverter - WARNING - LLAMA_CLOUD_API_KEY not found in environment variables
+2025-04-29 10:25:58,511 - SoftwoodLumber.DocumentConverter - INFO - Converting document: testing.pdf
+2025-04-29 10:25:58,513 - SoftwoodLumber.DocumentConverter - ERROR - LlamaParse API key not available
+2025-04-29 10:25:58,514 - SoftwoodLumber.DocumentConverter - INFO - Attempting fallback document conversion
+2025-04-29 10:25:58,515 - SoftwoodLumber.DocumentConverter - WARNING - PyPDF2 not available for fallback conversion
+2025-04-29 10:25:58,515 - SoftwoodLumber.Pipeline - ERROR - Document conversion failed
+2025-04-29 10:25:58,516 - SoftwoodLumber.Pipeline - INFO - Stage 2 depends on Stage 1 results, which are missing
+2025-04-29 10:25:58,517 - SoftwoodLumber.Pipeline - INFO - Pipeline completed in 0.01 seconds
+2025-04-29 10:26:54,264 - SoftwoodLumber - INFO - Starting SoftwoodLumber Pipeline Runner
+2025-04-29 10:26:54,268 - SoftwoodLumber.Pipeline - INFO - Initialized SoftwoodLumber pipeline with output directory: output
+2025-04-29 10:26:54,269 - SoftwoodLumber.Pipeline - INFO - Starting pipeline for input file: testing.pdf
+2025-04-29 10:26:54,269 - SoftwoodLumber.Pipeline - INFO - Skipping stages: None
+2025-04-29 10:26:54,270 - SoftwoodLumber.Pipeline - INFO - STAGE 1: Converting document to Markdown
+2025-04-29 10:26:54,270 - SoftwoodLumber.DocumentConverter - INFO - Converting document: testing.pdf
+2025-04-29 10:26:54,277 - SoftwoodLumber.DocumentConverter - INFO - Calling LlamaParse API
+2025-04-29 10:26:54,380 - SoftwoodLumber.DocumentConverter - INFO - Sending file to LlamaParse API: testing.pdf
+2025-04-29 10:27:01,434 - SoftwoodLumber.DocumentConverter - ERROR - LlamaParse API error: 413 - Request Entity Too Large
+
+FUNCTION_PAYLOAD_TOO_LARGE
+
+cle1::tl7qv-1745936815030-7cc2faee5d18
+
+2025-04-29 10:27:01,439 - SoftwoodLumber.DocumentConverter - WARNING - LlamaParse API call did not generate any files, trying fallback
+2025-04-29 10:27:01,441 - SoftwoodLumber.DocumentConverter - INFO - Attempting fallback document conversion
+2025-04-29 10:27:01,444 - SoftwoodLumber.DocumentConverter - WARNING - PyPDF2 not available for fallback conversion
+2025-04-29 10:27:01,445 - SoftwoodLumber.Pipeline - ERROR - Document conversion failed
+2025-04-29 10:27:01,447 - SoftwoodLumber.Pipeline - INFO - Stage 2 depends on Stage 1 results, which are missing
+2025-04-29 10:27:01,448 - SoftwoodLumber.Pipeline - INFO - Pipeline completed in 7.18 seconds
+2025-04-29 10:31:14,262 - SoftwoodLumber - INFO - Starting SoftwoodLumber Pipeline Runner
+2025-04-29 10:31:14,264 - SoftwoodLumber.Pipeline - INFO - Initialized SoftwoodLumber pipeline with output directory: output
+2025-04-29 10:31:14,264 - SoftwoodLumber.Pipeline - INFO - Starting pipeline for input file: testing.pdf
+2025-04-29 10:31:14,265 - SoftwoodLumber.Pipeline - INFO - Skipping stages: None
+2025-04-29 10:31:14,265 - SoftwoodLumber.Pipeline - INFO - STAGE 1: Converting document to Markdown
+2025-04-29 10:31:14,266 - SoftwoodLumber.DocumentConverter - INFO - Converting document: testing.pdf
+2025-04-29 10:31:14,267 - SoftwoodLumber.DocumentConverter - INFO - Calling LlamaParse API
+2025-04-29 10:31:14,277 - SoftwoodLumber.DocumentConverter - INFO - Sending file to LlamaParse API: testing.pdf
+2025-04-29 10:31:21,269 - SoftwoodLumber.DocumentConverter - ERROR - LlamaParse API error: 413 - Request Entity Too Large
+
+FUNCTION_PAYLOAD_TOO_LARGE
+
+cle1::j9jx4-1745937074988-6ea661d0e199
+
+2025-04-29 10:31:21,273 - SoftwoodLumber.DocumentConverter - WARNING - LlamaParse API call did not generate any files, trying fallback
+2025-04-29 10:31:21,274 - SoftwoodLumber.DocumentConverter - INFO - Attempting fallback document conversion
+2025-04-29 10:31:21,275 - SoftwoodLumber.DocumentConverter - WARNING - PyPDF2 not available for fallback conversion
+2025-04-29 10:31:21,276 - SoftwoodLumber.Pipeline - ERROR - Document conversion failed
+2025-04-29 10:31:21,276 - SoftwoodLumber.Pipeline - INFO - Stage 2 depends on Stage 1 results, which are missing
+2025-04-29 10:31:21,277 - SoftwoodLumber.Pipeline - INFO - Pipeline completed in 7.01 seconds
+2025-04-30 13:19:19,650 - root - INFO - ==================================================
+2025-04-30 13:19:19,651 - root - INFO - Starting document processing pipeline
+2025-04-30 13:19:19,651 - root - INFO - ==================================================
+2025-04-30 13:19:19,652 - root - ERROR - Input directory input does not exist
+2025-04-30 13:19:19,652 - root - ERROR - No valid markdown files found in input
+2025-04-30 13:20:59,996 - root - INFO - ==================================================
+2025-04-30 13:20:59,997 - root - INFO - Starting document processing pipeline
+2025-04-30 13:20:59,997 - root - INFO - ==================================================
+2025-04-30 13:20:59,998 - root - INFO - Found 1 markdown files to process
+2025-04-30 13:20:59,999 - root - INFO - Saving results to src/output\extracted_propositions.json
+2025-04-30 13:21:00,001 - root - INFO - Successfully saved 0 propositions across 0 documents
+2025-04-30 13:21:00,003 - root - INFO - Processing file: Think Wood_Community MusicWorks Center Project Profile_04222025(1)(1).md
+2025-04-30 13:21:00,033 - root - INFO - Processing file: src/input\Think Wood_Community MusicWorks Center Project Profile_04222025(1)(1).md (ID: Think Wood)
+2025-04-30 13:21:00,041 - root - INFO - Looking for prompt template at: c:\Users\olive\OneDrive\Desktop\SoftwoodLumber\src\..\prompts\Proposition.md
+2025-04-30 13:21:00,056 - root - INFO - File size: 10018 bytes, 9809 characters
+2025-04-30 13:21:00,061 - root - INFO - Initializing Gemini model: gemini-2.5-flash-preview-04-17
+2025-04-30 13:21:00,062 - root - INFO - Sending prompt to Gemini (length: 13100 characters)
+2025-04-30 13:21:22,254 - root - INFO - Received response from Gemini in 22.19 seconds
+2025-04-30 13:21:22,257 - root - INFO - Received response of length: 5215 characters
+2025-04-30 13:21:22,259 - root - INFO - Extracted 36 propositions from Think Wood
+2025-04-30 13:21:22,282 - root - INFO - Saving results to extracted_propositions.json
+2025-04-30 13:21:22,286 - root - INFO - Successfully saved 36 propositions across 1 documents
+2025-04-30 13:21:22,288 - root - INFO - Successfully extracted 36 propositions from Think Wood_Community MusicWorks Center Project Profile_04222025(1)(1).md
+2025-04-30 13:21:22,290 - root - INFO - Creating embeddings for 36 propositions
+2025-04-30 13:21:50,121 - root - INFO - Successfully created embeddings for all propositions
+2025-04-30 13:21:50,126 - root - INFO - Saved proposition embeddings to src/output\proposition_embeddings.json
+2025-04-30 13:21:50,129 - root - INFO - Pipeline complete. Stats saved to src/output\pipeline_stats.json
+2025-04-30 13:28:28,361 - root - INFO - ==================================================
+2025-04-30 13:28:28,362 - root - INFO - Starting document processing pipeline
+2025-04-30 13:28:28,362 - root - INFO - ==================================================
+2025-04-30 13:28:28,363 - root - INFO - Using prompt template from: c:\Users\olive\OneDrive\Desktop\SoftwoodLumber\src\..\prompts\Proposition.md
+2025-04-30 13:28:28,364 - root - INFO - Found 1 markdown files to process
+2025-04-30 13:28:28,368 - root - INFO - Found 0 previously processed files
+2025-04-30 13:28:28,371 - root - INFO - Appended new results to src/output\extracted_propositions.json
+2025-04-30 13:28:28,374 - root - INFO - Processing file: src/input\Think Wood_Community MusicWorks Center Project Profile_04222025(1)(1).md (ID: Think Wood)
+2025-04-30 13:28:28,376 - root - INFO - File size: 10018 bytes, 9809 characters
+2025-04-30 13:28:28,380 - root - INFO - Initializing Gemini model: gemini-2.5-flash-preview-04-17
+2025-04-30 13:28:28,382 - root - INFO - Sending prompt to Gemini (length: 13100 characters)
+2025-04-30 13:28:56,933 - root - INFO - Received response from Gemini in 28.55 seconds
+2025-04-30 13:28:56,935 - root - INFO - Received response of length: 5519 characters
+2025-04-30 13:28:56,938 - root - INFO - Extracted 40 propositions from Think Wood
+2025-04-30 13:28:56,964 - root - INFO - Appended new results to src/output\extracted_propositions.json
+2025-04-30 13:28:56,973 - root - INFO - Creating embeddings for 40 propositions
+2025-04-30 13:29:33,407 - root - INFO - Successfully created embeddings for all propositions
+2025-04-30 13:29:33,415 - root - INFO - Saved proposition embeddings to src/output\proposition_embeddings.json
+2025-04-30 13:29:33,418 - root - INFO - Pipeline complete. Stats saved to src/output\pipeline_stats.json
+2025-04-30 13:35:02,743 - root - INFO - ==================================================
+2025-04-30 13:35:02,744 - root - INFO - Starting document processing pipeline
+2025-04-30 13:35:02,744 - root - INFO - ==================================================
+2025-04-30 13:35:02,745 - root - INFO - Using prompt template from: c:\Users\olive\OneDrive\Desktop\SoftwoodLumber\src\..\prompts\Proposition.md
+2025-04-30 13:35:02,747 - root - INFO - Found 1 markdown files to process
+2025-04-30 13:35:02,774 - root - INFO - Found 1 previously processed files
+2025-04-30 13:35:02,808 - root - INFO - Appended new results to src/output\extracted_propositions.json
+2025-04-30 13:35:02,811 - root - INFO - Skipping already processed file: Think Wood_Community MusicWorks Center Project Profile_04222025(1)(1).md
+2025-04-30 13:35:02,813 - root - WARNING - No propositions extracted, skipping embedding creation
+2025-04-30 13:35:02,815 - root - INFO - Pipeline complete. Stats saved to src/output\pipeline_stats.json

@@ -1,0 +1,38 @@
+2025-04-29 15:12:55,613 - root - INFO - ==================================================
+2025-04-29 15:12:55,616 - root - INFO - Starting proposition extraction
+2025-04-29 15:12:55,617 - root - INFO - ==================================================
+2025-04-29 15:13:09,583 - root - INFO - ==================================================
+2025-04-29 15:13:09,584 - root - INFO - Starting proposition extraction
+2025-04-29 15:13:09,584 - root - INFO - ==================================================
+2025-04-29 15:13:18,922 - root - INFO - ==================================================
+2025-04-29 15:13:18,924 - root - INFO - Starting proposition extraction
+2025-04-29 15:13:18,926 - root - INFO - ==================================================
+2025-04-29 15:13:18,948 - root - INFO - Processing file: C:\Users\olive\AppData\Local\Temp\tmp0207klyc\Think Wood_Community MusicWorks Center Project Profile_04222025_fixed.md (ID: Think Wood)
+2025-04-29 15:13:19,031 - root - INFO - File size: 11183 bytes, 10966 characters
+2025-04-29 15:13:19,032 - root - INFO - Initializing Gemini model: gemini-2.5-flash-preview-04-17
+2025-04-29 15:13:19,033 - root - INFO - Sending prompt to Gemini (length: 14257 characters)
+2025-04-29 15:13:38,585 - root - INFO - Received response from Gemini in 19.55 seconds
+2025-04-29 15:13:38,596 - root - INFO - Received response of length: 7683 characters
+2025-04-29 15:13:38,706 - root - INFO - Extracted 61 propositions from Think Wood
+2025-04-29 15:13:57,360 - root - INFO - ==================================================
+2025-04-29 15:13:57,368 - root - INFO - Starting proposition extraction
+2025-04-29 15:13:57,369 - root - INFO - ==================================================
+2025-04-29 15:41:19,610 - root - INFO - ==================================================
+2025-04-29 15:41:19,613 - root - INFO - Starting proposition extraction
+2025-04-29 15:41:19,615 - root - INFO - ==================================================
+2025-04-30 12:02:42,827 - root - INFO - ==================================================
+2025-04-30 12:02:42,829 - root - INFO - Starting proposition extraction
+2025-04-30 12:02:42,829 - root - INFO - ==================================================
+2025-04-30 12:02:51,354 - root - INFO - ==================================================
+2025-04-30 12:02:51,357 - root - INFO - Starting proposition extraction
+2025-04-30 12:02:51,358 - root - INFO - ==================================================
+2025-04-30 12:02:53,679 - root - INFO - ==================================================
+2025-04-30 12:02:53,680 - root - INFO - Starting proposition extraction
+2025-04-30 12:02:53,682 - root - INFO - ==================================================
+2025-04-30 12:02:53,746 - root - INFO - Processing file: C:\Users\olive\AppData\Local\Temp\tmp1nawy7np\Think Wood_Community MusicWorks Center Project Profile_04222025(1)(1).md (ID: Think Wood)
+2025-04-30 12:02:53,791 - root - INFO - File size: 10018 bytes, 9809 characters
+2025-04-30 12:02:53,792 - root - INFO - Initializing Gemini model: gemini-2.5-flash-preview-04-17
+2025-04-30 12:02:53,792 - root - INFO - Sending prompt to Gemini (length: 13100 characters)
+2025-04-30 12:03:18,723 - root - INFO - Received response from Gemini in 24.93 seconds
+2025-04-30 12:03:18,724 - root - INFO - Received response of length: 6515 characters
+2025-04-30 12:03:18,725 - root - INFO - Extracted 54 propositions from Think Wood

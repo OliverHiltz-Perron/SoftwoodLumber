@@ -1,0 +1,22 @@
+2025-04-30 14:58:58,201 - root - INFO - ==================================================
+2025-04-30 14:58:58,201 - root - INFO - Starting proposition extraction with model: gemini-2.5-flash-preview-04-17
+2025-04-30 14:58:58,201 - root - INFO - Max output tokens: 65536
+2025-04-30 14:58:58,201 - root - INFO - ==================================================
+2025-04-30 14:58:58,201 - root - INFO - Looking for prompt template at: C:\Users\olive\OneDrive\Desktop\SoftwoodLumber\srctest\prompts\Proposition.md
+2025-04-30 14:58:58,202 - root - INFO - Processing content (ID: tmpfhoozfj)
+2025-04-30 14:58:58,203 - root - INFO - Initializing Gemini model: gemini-2.5-flash-preview-04-17
+2025-04-30 14:58:58,203 - root - INFO - Sending prompt to Gemini (length: 14201 characters)
+2025-04-30 14:59:26,107 - root - INFO - Received response from Gemini in 27.90 seconds
+2025-04-30 14:59:26,108 - root - INFO - Received response of length: 7910 characters
+2025-04-30 14:59:26,109 - root - INFO - Extracted 66 propositions from tmpfhoozfj
+2025-04-30 15:03:15,409 - root - INFO - ==================================================
+2025-04-30 15:03:15,411 - root - INFO - Starting proposition extraction with model: gemini-2.5-flash-preview-04-17
+2025-04-30 15:03:15,411 - root - INFO - Max output tokens: 65536
+2025-04-30 15:03:15,411 - root - INFO - ==================================================
+2025-04-30 15:03:15,411 - root - INFO - Looking for prompt template at: C:\Users\olive\OneDrive\Desktop\SoftwoodLumber\srctest\prompts\Proposition.md
+2025-04-30 15:03:15,412 - root - INFO - Processing content (ID: tmpf8uwjbk)
+2025-04-30 15:03:15,412 - root - INFO - Initializing Gemini model: gemini-2.5-flash-preview-04-17
+2025-04-30 15:03:15,412 - root - INFO - Sending prompt to Gemini (length: 10343 characters)
+2025-04-30 15:03:43,262 - root - INFO - Received response from Gemini in 27.85 seconds
+2025-04-30 15:03:43,263 - root - INFO - Received response of length: 6340 characters
+2025-04-30 15:03:43,263 - root - INFO - Extracted 40 propositions from tmpf8uwjbk

@@ -1,0 +1,74 @@
+2025-04-30 11:47:41,182 - PropositionExtraction - INFO - ==================================================
+2025-04-30 11:47:41,188 - PropositionExtraction - INFO - Initialized proposition extraction with model: gemini-2.5-flash-preview-04-17
+2025-04-30 11:47:41,189 - PropositionExtraction - INFO - Max output tokens: 65536
+2025-04-30 11:47:41,195 - PropositionExtraction - INFO - ==================================================
+2025-04-30 11:49:18,447 - PropositionExtraction - INFO - Processing file: C:\Users\olive\AppData\Local\Temp\Think Wood_Community MusicWorks Center Project Profile_04222025(1)(1).md (ID: Think Wood)
+2025-04-30 11:49:18,482 - PropositionExtraction - INFO - File size: 10018 bytes, 9809 characters
+2025-04-30 11:49:18,483 - PropositionExtraction - INFO - Sending prompt to Gemini (length: 13100 characters)
+2025-04-30 11:49:39,308 - PropositionExtraction - INFO - Received response from Gemini in 20.82 seconds
+2025-04-30 11:49:39,309 - PropositionExtraction - INFO - Received response of length: 4766 characters
+2025-04-30 11:49:39,310 - PropositionExtraction - INFO - Extracted 33 propositions from Think Wood
+2025-04-30 11:50:33,777 - PropositionExtraction - INFO - Processing file: C:\Users\olive\AppData\Local\Temp\Think Wood_Community MusicWorks Center Project Profile_04222025_fixed.md (ID: Think Wood)
+2025-04-30 11:50:33,811 - PropositionExtraction - INFO - File size: 11183 bytes, 10966 characters
+2025-04-30 11:50:33,812 - PropositionExtraction - INFO - Sending prompt to Gemini (length: 14257 characters)
+2025-04-30 11:50:59,533 - PropositionExtraction - INFO - Received response from Gemini in 25.72 seconds
+2025-04-30 11:50:59,534 - PropositionExtraction - INFO - Received response of length: 4626 characters
+2025-04-30 11:50:59,534 - PropositionExtraction - INFO - Extracted 33 propositions from Think Wood
+2025-04-30 13:23:00,411 - root - INFO - ==================================================
+2025-04-30 13:23:00,412 - root - INFO - Starting proposition extraction with model: gemini-2.5-flash-preview-04-17
+2025-04-30 13:23:00,412 - root - INFO - Max output tokens: 65536
+2025-04-30 13:23:00,413 - root - INFO - Output will be saved to: extracted_propositions.json
+2025-04-30 13:23:00,413 - root - INFO - ==================================================
+2025-04-30 13:23:00,448 - root - INFO - Appended new results to extracted_propositions.json
+2025-04-30 13:23:00,450 - root - INFO - No 'fixed_markdown' folder found. Using markdown files from the parent directory.
+2025-04-30 13:23:00,493 - root - INFO - Skipping README file: c:\Users\olive\OneDrive\Desktop\SoftwoodLumber\src\..\README.md
+2025-04-30 13:23:00,497 - root - WARNING - No valid .md files found in the search directory
+2025-04-30 13:23:46,960 - root - INFO - ==================================================
+2025-04-30 13:23:46,961 - root - INFO - Starting proposition extraction with model: gemini-2.5-flash-preview-04-17
+2025-04-30 13:23:46,962 - root - INFO - Max output tokens: 65536
+2025-04-30 13:23:46,962 - root - INFO - Output will be saved to: extracted_propositions.json
+2025-04-30 13:23:46,963 - root - INFO - ==================================================
+2025-04-30 13:23:47,066 - root - INFO - Appended new results to extracted_propositions.json
+2025-04-30 13:23:47,070 - root - INFO - No 'fixed_markdown' folder found. Using markdown files from the parent directory.
+2025-04-30 13:23:47,091 - root - INFO - Skipping README file: c:\Users\olive\OneDrive\Desktop\SoftwoodLumber\src\..\README.md
+2025-04-30 13:23:47,101 - root - INFO - Found 1 valid .md files (excluding README)
+2025-04-30 13:23:47,102 - root - INFO - Processing file 1/1: c:\Users\olive\OneDrive\Desktop\SoftwoodLumber\src\..\Think Wood_Community MusicWorks Center Project Profile_04222025(1)(1).md
+2025-04-30 13:23:47,104 - root - INFO - Processing file: c:\Users\olive\OneDrive\Desktop\SoftwoodLumber\src\..\Think Wood_Community MusicWorks Center Project Profile_04222025(1)(1).md (ID: Think Wood)
+2025-04-30 13:23:47,104 - root - INFO - Looking for prompt template at: c:\Users\olive\OneDrive\Desktop\SoftwoodLumber\src\..\prompts\Proposition.md
+2025-04-30 13:23:47,107 - root - INFO - File size: 10018 bytes, 9809 characters
+2025-04-30 13:23:47,110 - root - INFO - Initializing Gemini model: gemini-2.5-flash-preview-04-17
+2025-04-30 13:23:47,110 - root - INFO - Sending prompt to Gemini (length: 13100 characters)
+2025-04-30 13:24:10,813 - root - INFO - Received response from Gemini in 23.70 seconds
+2025-04-30 13:24:10,814 - root - INFO - Received response of length: 9006 characters
+2025-04-30 13:24:10,817 - root - INFO - Extracted 76 propositions from Think Wood
+2025-04-30 13:24:10,902 - root - INFO - Appended new results to extracted_propositions.json
+2025-04-30 13:24:10,904 - root - INFO - Processing complete. Success: 1, Errors: 0
+2025-04-30 13:43:42,460 - root - INFO - ==================================================
+2025-04-30 13:43:42,463 - root - INFO - Starting proposition extraction with model: gemini-2.5-flash-preview-04-17
+2025-04-30 13:43:42,463 - root - INFO - Max output tokens: 65536
+2025-04-30 13:43:42,464 - root - INFO - Output will be saved to: extracted_propositions.json
+2025-04-30 13:43:42,464 - root - INFO - ==================================================
+2025-04-30 13:43:42,472 - root - INFO - Appended new results to extracted_propositions.json
+2025-04-30 13:43:42,476 - root - INFO - No 'fixed_markdown' folder found. Using markdown files from the parent directory.
+2025-04-30 13:43:42,479 - root - INFO - Skipping README file: c:\Users\olive\OneDrive\Desktop\SoftwoodLumber\src\..\README.md
+2025-04-30 13:43:42,480 - root - INFO - Found 1 valid .md files (excluding README)
+2025-04-30 13:43:42,482 - root - INFO - Processing file 1/1: c:\Users\olive\OneDrive\Desktop\SoftwoodLumber\src\..\Think Wood_Community MusicWorks Center Project Profile_04222025(1)(1).md
+2025-04-30 13:43:42,486 - root - INFO - Processing file: c:\Users\olive\OneDrive\Desktop\SoftwoodLumber\src\..\Think Wood_Community MusicWorks Center Project Profile_04222025(1)(1).md (ID: Think Wood)
+2025-04-30 13:43:42,487 - root - INFO - Looking for prompt template at: c:\Users\olive\OneDrive\Desktop\SoftwoodLumber\src\..\prompts\Proposition.md
+2025-04-30 13:43:42,492 - root - INFO - File size: 10018 bytes, 9809 characters
+2025-04-30 13:43:42,495 - root - INFO - Initializing Gemini model: gemini-2.5-flash-preview-04-17
+2025-04-30 13:43:42,510 - root - INFO - Sending prompt to Gemini (length: 13100 characters)
+2025-04-30 13:44:00,493 - root - INFO - Received response from Gemini in 17.98 seconds
+2025-04-30 13:44:00,494 - root - INFO - Received response of length: 7730 characters
+2025-04-30 13:44:00,503 - root - INFO - Extracted 59 propositions from Think Wood
+2025-04-30 13:44:00,625 - root - INFO - Appended new results to extracted_propositions.json
+2025-04-30 13:44:00,646 - root - INFO - Proposition extraction complete. Success: 1, Errors: 0
+2025-04-30 13:44:00,657 - root - INFO - Running semantic analysis on extracted propositions...
+2025-04-30 13:44:00,658 - root - INFO - Starting semantic analysis of propositions...
+2025-04-30 13:44:00,693 - root - INFO - Using device: cpu
+2025-04-30 13:44:00,695 - root - INFO - Loading embedding model and tokenizer...
+2025-04-30 13:44:22,915 - root - INFO - Total propositions: 171
+2025-04-30 13:44:22,918 - root - INFO - Creating embeddings for all propositions...
+2025-04-30 13:45:21,478 - root - INFO - Finding similar propositions for each proposition...
+2025-04-30 13:45:21,663 - root - INFO - Semantic analysis complete. Results saved to extracted_propositions.json
+2025-04-30 13:45:23,841 - root - INFO - Complete pipeline executed successfully!
