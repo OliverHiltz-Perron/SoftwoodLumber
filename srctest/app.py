@@ -38,27 +38,18 @@ with st.expander("API Keys Configuration", expanded=True):
     llama_key = st.text_input("LlamaParse API Key", value=llama_key_default, type="password")
     gemini_key = st.text_input("Gemini API Key", value=gemini_key_default, type="password")
 
-# Check for required directory and prompt files
-with st.expander("System Setup", expanded=False):
-    # Check for prompts directory
-    prompts_dir = "prompts"
-    if not os.path.exists(prompts_dir):
-        if st.button("Create Prompts Directory"):
-            os.makedirs(prompts_dir, exist_ok=True)
-            st.success(f"Created {prompts_dir} directory")
-        else:
-            st.warning(f"The '{prompts_dir}' directory doesn't exist. Please create it or click the button above.")
-    else:
-        st.success(f"'{prompts_dir}' directory found")
-    
-    # Check for required prompt files
-    markdown_prompt_path = os.path.join(prompts_dir, "markdown_prompt.txt")
-    proposition_prompt_path = os.path.join(prompts_dir, "Proposition.md")
-    
-    if not os.path.exists(markdown_prompt_path):
-        markdown_prompt = st.text_area("Create markdown_prompt.txt", 
-                                      height=150,
-                                      value="""You are an expert in formatting Markdown documents. I will provide you with a Markdown document that has formatting issues due to conversion from another format. Your task is to clean up the Markdown formatting while preserving the content.
+# Hidden configuration - automatically create needed files and folders
+prompts_dir = "prompts"
+if not os.path.exists(prompts_dir):
+    os.makedirs(prompts_dir, exist_ok=True)
+
+# Set up prompt files without showing to user
+markdown_prompt_path = os.path.join(prompts_dir, "markdown_prompt.txt")
+proposition_prompt_path = os.path.join(prompts_dir, "Proposition.md")
+
+# Create markdown prompt file if it doesn't exist
+if not os.path.exists(markdown_prompt_path):
+    markdown_prompt = """You are an expert in formatting Markdown documents. I will provide you with a Markdown document that has formatting issues due to conversion from another format. Your task is to clean up the Markdown formatting while preserving the content.
 
 Formatting issues to fix:
 1. Remove unnecessary line breaks and merge paragraphs
@@ -74,63 +65,73 @@ Formatting issues to fix:
 
 Here is the Markdown content to fix:
 
-{markdown_content}""")
-        
-        if st.button("Save markdown_prompt.txt"):
-            os.makedirs(os.path.dirname(markdown_prompt_path), exist_ok=True)
-            with open(markdown_prompt_path, "w", encoding="utf-8") as f:
-                f.write(markdown_prompt)
-            st.success(f"Saved {markdown_prompt_path}")
-    else:
-        st.success(f"'{markdown_prompt_path}' found")
-
-    if not os.path.exists(proposition_prompt_path):
-        proposition_prompt = st.text_area("Create Proposition.md", 
-                                        height=150,
-                                        value="""You are going to extract factual propositions from a document. A proposition is a claim that is either true or false, and that stands on its own.
-
-A good proposition expresses a single thought, using clear and simple language, without complex structures (like negation or conditionals).
-
-The most important thing is that propositions should be derived directly from the text - do not add new information or claims that aren't supported by the text.
-
-For each proposition:
-- Extract only factual claims (not opinions, questions, suggestions, section headers)
-- Express each as a simple, clear statement
-- Aim to preserve the original meaning
-- Break complex statements into simpler ones
-- Remove unnecessary context or conditionals
-- Make the proposition standalone and context-independent
-
-Format your answer as a semicolon-separated list of propositions. Do not include any additional text, explanations, or formatting.
-
-Example:
-Water boils at 100 degrees Celsius; Humans have 46 chromosomes; Penicillin was discovered by Alexander Fleming
-
-If there are no substantive factual claims in the document, just respond with NA.
-
-Here is the content:
-
-{content}""")
-        
-        if st.button("Save Proposition.md"):
-            os.makedirs(os.path.dirname(proposition_prompt_path), exist_ok=True)
-            with open(proposition_prompt_path, "w", encoding="utf-8") as f:
-                f.write(proposition_prompt)
-            st.success(f"Saved {proposition_prompt_path}")
-    else:
-        st.success(f"'{proposition_prompt_path}' found")
-
-# Database configuration for QueryJson
-with st.expander("Database Configuration", expanded=False):
-    st.info("Configure the database path for proposition similarity search")
+{markdown_content}"""
     
-    database_path = st.text_input(
-        "Path to CSV database with pre-computed embeddings",
-        value=os.path.join(os.getcwd(), "propositions_rows.csv")
-    )
+    # Create directory if it doesn't exist
+    os.makedirs(os.path.dirname(markdown_prompt_path), exist_ok=True)
+    with open(markdown_prompt_path, "w", encoding="utf-8") as f:
+        f.write(markdown_prompt)
+
+# Create proposition prompt file if it doesn't exist
+if not os.path.exists(proposition_prompt_path):
+    proposition_prompt = """You are an expert analyst specializing in the wood industry. Your task is to extract comprehensive, self-contained propositions from text that relate to any aspect of the wood industry ecosystem. Here is the text you need to analyze: 
+
+<text>
+{content}
+</text>
+
+Analysis Process
+
+Relevance Assessment:
+Determine if the text contains information relevant to the wood industry (forestry, timber, manufacturing, construction, markets, sustainability, etc.). If NO relevant content exists, respond only with "NA".
+Proposition Extraction Guidelines:
+For relevant text, extract propositions following these strict requirements:
+
+Each proposition must be completely self-contained with all necessary context
+Include full identification of subjects (organizations, competitions, initiatives)
+Specify exact names, dates, locations, and numerical data when present
+Ensure propositions can stand independently without reference to other text
+Capture complete cause-effect relationships
+Include relevant qualifiers, conditions, and industry-specific context
+Replace all pronouns and vague references with specific entities
+Preserve industry terminology with sufficient context for understanding
+
+
+Content Requirements:
+Each proposition must:
+
+Contain factual, objective information directly from the text
+Include all relevant context needed for full understanding
+Maintain the specific details that provide value (measurements, percentages, timeframes)
+Fully identify all entities, organizations, and initiatives
+Specify geographic regions, wood species, or market segments when mentioned
+Avoid document-specific references (e.g., "As shown in Table 2")
+Form grammatically complete statements
+
+
+Output Format:
+Present only the extracted propositions separated by semicolons. Include ONLY the propositions themselves or "NA" if the text is irrelevant. Do not include any commentary, numbering, or additional text.
+
+Examples of Properly Formatted Propositions:
+POOR: "The competition promotes sustainability."
+GOOD: "The Timber in the City Competition sponsored by the Softwood Lumber Board promotes using sustainable timber construction methods to create healthy urban living environments."
+POOR: "The report shows increased production last year."
+GOOD: "The American Hardwood Export Council's 2023 industry report showed a 14% increase in hardwood production across North American mills between 2021-2022, with oak and maple accounting for 65% of total output."
+POOR: "Companies are investing in new technology."
+GOOD: "Leading wood processing companies including West Fraser and Canfor invested $3.2 billion in advanced sawmill technology in 2022 to improve yield efficiency by an average of 8% while reducing waste material by 12% compared to traditional processing methods."
+POOR: "The regulations affect timber imports."
+GOOD: "The European Union Timber Regulation (EUTR) implemented in January 2023 requires all imported wood products to undergo enhanced documentation proving legal harvesting, resulting in a 22% increase in compliance costs for North American exporters according to the International Wood Products Association."
+Remember: Extract ONLY the propositions without any additional text, separating each with a semicolon. If the text is not relevant to the wood industry, respond only with "NA"."""
     
-    threshold = st.slider("Similarity threshold", min_value=0.0, max_value=1.0, value=0.6, step=0.05)
-    top_k = st.number_input("Number of top matches to return", min_value=1, max_value=10, value=3, step=1)
+    # Create directory if it doesn't exist
+    os.makedirs(os.path.dirname(proposition_prompt_path), exist_ok=True)
+    with open(proposition_prompt_path, "w", encoding="utf-8") as f:
+        f.write(proposition_prompt)
+
+# Hidden database configuration
+database_path = os.path.join(os.getcwd(), "propositions_rows.csv")
+threshold = 0.6
+top_k = 3
 
 # File upload
 uploaded_file = st.file_uploader("Upload a document (PDF, DOCX, DOC, PPTX, PPT, or HTML)", 
@@ -141,7 +142,7 @@ show_intermediate = st.checkbox("Show intermediate results", value=True)
 use_gpu = st.checkbox("Use GPU for QueryJson (if available)", value=True)
 
 # Execute pipeline function
-def execute_pipeline(input_file):
+def execute_pipeline(input_file, doc_id):
     if not llama_key or not gemini_key:
         st.error("Both LlamaParse and Gemini API keys are required")
         return None
@@ -186,7 +187,7 @@ def execute_pipeline(input_file):
             stdout, stderr = process.communicate()
             
             if returncode != 0:
-                st.error(f"LlamaParse conversion failed: {stderr}")
+                st.error("LlamaParse conversion failed")
                 return None
             
             progress_bar.progress(0.25)
@@ -219,7 +220,7 @@ def execute_pipeline(input_file):
             stdout, stderr = process.communicate()
             
             if returncode != 0:
-                st.error(f"Markdown fixing failed: {stderr}")
+                st.error("Markdown fixing failed")
                 return None
             
             progress_bar.progress(0.5)
@@ -234,7 +235,7 @@ def execute_pipeline(input_file):
             # Step 3: Extract propositions using Gemini AI
             st.write("Step 3: Extracting propositions...")
             
-            propositions_cmd = f"python propositions.py -i \"{fixed_markdown_path}\" -o \"{propositions_path}\" --prompt \"{proposition_prompt_path}\""
+            propositions_cmd = f"python propositions.py -i \"{fixed_markdown_path}\" -o \"{propositions_path}\" --prompt \"{proposition_prompt_path}\" --doc-id \"{doc_id}\""
             process = subprocess.Popen(
                 propositions_cmd, 
                 shell=True,
@@ -252,7 +253,7 @@ def execute_pipeline(input_file):
             stdout, stderr = process.communicate()
             
             if returncode != 0:
-                st.error(f"Proposition extraction failed: {stderr}")
+                st.error("Proposition extraction failed")
                 return None
             
             progress_bar.progress(0.75)
@@ -288,7 +289,7 @@ def execute_pipeline(input_file):
             stdout, stderr = process.communicate()
             
             if returncode != 0:
-                st.error(f"QueryJson failed: {stderr}")
+                st.error("QueryJson processing failed")
                 return None
             
             progress_bar.progress(1.0)
@@ -304,9 +305,21 @@ def execute_pipeline(input_file):
             for temp_file in [markdown_path, fixed_markdown_path, propositions_path, output_path]:
                 try:
                     if os.path.exists(temp_file):
-                        os.unlink(temp_file)
-                except Exception as e:
-                    st.warning(f"Error removing temporary file {temp_file}: {e}")
+                        # Instead of trying to delete immediately, give processes time to release the file
+                        # We'll try a few times with a delay between attempts
+                        for attempt in range(3):
+                            try:
+                                os.unlink(temp_file)
+                                break  # Success, exit the retry loop
+                            except Exception:
+                                # If failed, wait a moment before trying again
+                                time.sleep(1)
+                                if attempt == 2:  # Last attempt
+                                    # Just log this to stderr but don't show to user
+                                    print(f"Could not remove temporary file {temp_file}", file=sys.stderr)
+                except Exception:
+                    # Silently continue if cleanup fails - don't show errors to user
+                    pass
 
 # Process button
 if uploaded_file is not None:
@@ -314,11 +327,15 @@ if uploaded_file is not None:
     with tempfile.NamedTemporaryFile(delete=False, suffix="." + uploaded_file.name.split(".")[-1]) as tmp_file:
         tmp_file.write(uploaded_file.getvalue())
         input_filepath = tmp_file.name
+        
+    # Extract document ID from filename - first 10 characters
+    doc_id = uploaded_file.name[:10]
+    st.write(f"Using document ID: {doc_id}")
     
     if st.button("Process Document"):
         with st.spinner("Processing document... This may take several minutes depending on document size."):
             try:
-                final_output = execute_pipeline(input_filepath)
+                final_output = execute_pipeline(input_filepath, doc_id)
                 
                 if final_output:
                     st.success("Processing complete!")
@@ -336,7 +353,7 @@ if uploaded_file is not None:
                         mime="application/json"
                     )
             except Exception as e:
-                st.error(f"An error occurred during processing: {str(e)}")
+                st.error("An error occurred during processing")
             finally:
                 # Clean up the temporary input file
                 if os.path.exists(input_filepath):

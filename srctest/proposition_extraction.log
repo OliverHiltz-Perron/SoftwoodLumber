@@ -20,3 +20,58 @@
 2025-04-30 15:03:43,262 - root - INFO - Received response from Gemini in 27.85 seconds
 2025-04-30 15:03:43,263 - root - INFO - Received response of length: 6340 characters
 2025-04-30 15:03:43,263 - root - INFO - Extracted 40 propositions from tmpf8uwjbk
+2025-04-30 15:20:30,679 - root - INFO - ==================================================
+2025-04-30 15:20:30,679 - root - INFO - Starting proposition extraction with model: gemini-2.5-flash-preview-04-17
+2025-04-30 15:20:30,679 - root - INFO - Max output tokens: 65536
+2025-04-30 15:20:30,679 - root - INFO - ==================================================
+2025-04-30 15:20:30,679 - root - INFO - Looking for prompt template at: C:\Users\olive\OneDrive\Desktop\SoftwoodLumber\srctest\prompts\Proposition.md
+2025-04-30 15:20:30,680 - root - INFO - Processing content (ID: tmpvbez8d4)
+2025-04-30 15:20:30,680 - root - INFO - Initializing Gemini model: gemini-2.5-flash-preview-04-17
+2025-04-30 15:20:30,680 - root - INFO - Sending prompt to Gemini (length: 14343 characters)
+2025-04-30 15:20:59,577 - root - INFO - Received response from Gemini in 28.90 seconds
+2025-04-30 15:20:59,577 - root - INFO - Received response of length: 4975 characters
+2025-04-30 15:20:59,577 - root - INFO - Extracted 37 propositions from tmpvbez8d4
+2025-04-30 15:25:12,994 - root - INFO - ==================================================
+2025-04-30 15:25:12,994 - root - INFO - Starting proposition extraction with model: gemini-2.5-flash-preview-04-17
+2025-04-30 15:25:12,994 - root - INFO - Max output tokens: 65536
+2025-04-30 15:25:12,994 - root - INFO - ==================================================
+2025-04-30 15:25:12,994 - root - INFO - Looking for prompt template at: C:\Users\olive\OneDrive\Desktop\SoftwoodLumber\srctest\prompts\Proposition.md
+2025-04-30 15:25:13,024 - root - INFO - Processing content (ID: tmptu1uvo_)
+2025-04-30 15:25:13,024 - root - INFO - Initializing Gemini model: gemini-2.5-flash-preview-04-17
+2025-04-30 15:25:13,024 - root - INFO - Sending prompt to Gemini (length: 10338 characters)
+2025-04-30 15:25:33,041 - root - INFO - Received response from Gemini in 20.02 seconds
+2025-04-30 15:25:33,042 - root - INFO - Received response of length: 5079 characters
+2025-04-30 15:25:33,042 - root - INFO - Extracted 27 propositions from tmptu1uvo_
+2025-04-30 15:30:59,701 - root - INFO - ==================================================
+2025-04-30 15:30:59,701 - root - INFO - Starting proposition extraction with model: gemini-2.5-flash-preview-04-17
+2025-04-30 15:30:59,701 - root - INFO - Max output tokens: 65536
+2025-04-30 15:30:59,701 - root - INFO - ==================================================
+2025-04-30 15:30:59,702 - root - INFO - Looking for prompt template at: C:\Users\olive\OneDrive\Desktop\SoftwoodLumber\srctest\prompts\Proposition.md
+2025-04-30 15:30:59,714 - root - INFO - Processing content (ID: tmplv_9j9x)
+2025-04-30 15:30:59,715 - root - INFO - Initializing Gemini model: gemini-2.5-flash-preview-04-17
+2025-04-30 15:30:59,715 - root - INFO - Sending prompt to Gemini (length: 14415 characters)
+2025-04-30 15:31:25,099 - root - INFO - Received response from Gemini in 25.38 seconds
+2025-04-30 15:31:25,100 - root - INFO - Received response of length: 5925 characters
+2025-04-30 15:31:25,101 - root - INFO - Extracted 37 propositions from tmplv_9j9x
+2025-04-30 15:36:43,538 - root - INFO - ==================================================
+2025-04-30 15:36:43,539 - root - INFO - Starting proposition extraction with model: gemini-2.5-flash-preview-04-17
+2025-04-30 15:36:43,539 - root - INFO - Max output tokens: 65536
+2025-04-30 15:36:43,539 - root - INFO - ==================================================
+2025-04-30 15:36:43,539 - root - INFO - Looking for prompt template at: C:\Users\olive\OneDrive\Desktop\SoftwoodLumber\srctest\prompts\Proposition.md
+2025-04-30 15:36:43,539 - root - INFO - Processing content (ID: tmpyofl6z2)
+2025-04-30 15:36:43,539 - root - INFO - Initializing Gemini model: gemini-2.5-flash-preview-04-17
+2025-04-30 15:36:43,539 - root - INFO - Sending prompt to Gemini (length: 14116 characters)
+2025-04-30 15:37:11,237 - root - INFO - Received response from Gemini in 27.70 seconds
+2025-04-30 15:37:11,237 - root - INFO - Received response of length: 5582 characters
+2025-04-30 15:37:11,238 - root - INFO - Extracted 36 propositions from tmpyofl6z2
+2025-04-30 15:40:44,327 - root - INFO - ==================================================
+2025-04-30 15:40:44,327 - root - INFO - Starting proposition extraction with model: gemini-2.5-flash-preview-04-17
+2025-04-30 15:40:44,327 - root - INFO - Max output tokens: 65536
+2025-04-30 15:40:44,327 - root - INFO - ==================================================
+2025-04-30 15:40:44,327 - root - INFO - Looking for prompt template at: C:\Users\olive\OneDrive\Desktop\SoftwoodLumber\srctest\prompts\Proposition.md
+2025-04-30 15:40:44,328 - root - INFO - Processing content (ID: testing.pd)
+2025-04-30 15:40:44,328 - root - INFO - Initializing Gemini model: gemini-2.5-flash-preview-04-17
+2025-04-30 15:40:44,328 - root - INFO - Sending prompt to Gemini (length: 14167 characters)
+2025-04-30 15:41:10,646 - root - INFO - Received response from Gemini in 26.32 seconds
+2025-04-30 15:41:10,646 - root - INFO - Received response of length: 9403 characters
+2025-04-30 15:41:10,647 - root - INFO - Extracted 78 propositions from testing.pd
