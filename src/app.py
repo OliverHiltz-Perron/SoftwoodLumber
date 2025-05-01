@@ -13,34 +13,138 @@ load_dotenv()
 
 # Set page config
 st.set_page_config(
-    page_title="Document Analysis Pipeline",
-    page_icon="📄",
+    page_title="Softwood Lumber Board Document Checker 🌲",
+    page_icon="🌲",
     layout="wide"
 )
 
 # Title and description
-st.title("Document Analysis Pipeline")
+# Custom CSS for SLB branding
+st.markdown("""
+<style>
+    /* Primary SLB branding color */
+    :root {
+        --primary-color: #7fbc41;
+        --text-on-primary: #FFFFFF;
+    }
+    
+    /* Header styling */
+    .main .block-container {
+        padding-top: 2rem;
+    }
+    
+    /* Make the title stand out with SLB branding */
+    h1 {
+        color: var(--primary-color);
+        padding: 1rem 0;
+    }
+    
+    /* Style the app container */
+    .reportview-container {
+        background-color: #f9f9f9;
+    }
+    
+    /* Style buttons with SLB green */
+    .stButton>button {
+        background-color: var(--primary-color);
+        color: var(--text-on-primary);
+        border: none;
+    }
+    
+    .stButton>button:hover {
+        background-color: #6da437;
+        color: var(--text-on-primary);
+    }
+    
+    /* Style progress bars */
+    .stProgress > div > div > div {
+        background-color: var(--primary-color);
+    }
+    
+    /* Style info boxes */
+    .stAlert {
+        border-left-color: var(--primary-color);
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Load and display SLB logo
+st.image("SLB-LOGO.PNG", width=200)
+
+# Title and description with tree emoji
+st.title("Softwood Lumber Board Document Checker 🌲")
+st.markdown("""
+<div style="background-color: #7fbc41; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+    <p style="color: white; margin: 0; font-size: 1.1rem;">
+        This tool analyzes documents related to the wood industry. Upload a document to extract key information, find related data in our database, and generate proper citations.
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
 st.markdown("""
 This app processes documents through a pipeline:
 1. Convert document to markdown using LlamaParse
 2. Fix markdown formatting with Gemini AI
 3. Extract propositions using Gemini AI
-4. Find similar propositions in a database
+4. Find similar propositions in a database using nomic-v2 embeddings
 5. Select best citations using OpenAI
 """)
+# Create sidebar for configuration
+st.sidebar.image("SLB-LOGO.PNG", width=150)
+st.sidebar.title("Configuration")
+st.sidebar.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
+# API key input section in sidebar
+st.sidebar.markdown("""
+<div style="background-color: #7fbc41; padding: 0.5rem; border-radius: 0.3rem; margin-bottom: 0.5rem;">
+    <p style="color: white; margin: 0; font-weight: bold;">API Keys</p>
+</div>
+""", unsafe_allow_html=True)
+
+# Load keys from .env if available
+llama_key_default = os.getenv("LLAMA_CLOUD_API_KEY", "")
+gemini_key_default = os.getenv("GEMINI_API_KEY", "")
+openai_key_default = os.getenv("OPENAI_API_KEY", "")
+
+# Move API input fields to sidebar
+llama_key = st.sidebar.text_input("LlamaParse API Key", value=llama_key_default, type="password")
+gemini_key = st.sidebar.text_input("Gemini API Key", value=gemini_key_default, type="password")
+openai_key = st.sidebar.text_input("OpenAI API Key", value=openai_key_default, type="password")
+
+# Configuration options
+st.sidebar.markdown("""
+<div style="background-color: #7fbc41; padding: 0.5rem; border-radius: 0.3rem; margin: 1.5rem 0 0.5rem 0;">
+    <p style="color: white; margin: 0; font-weight: bold;">Options</p>
+</div>
+""", unsafe_allow_html=True)
+
+# Process flow control in sidebar (removing GPU option)
+show_intermediate = st.sidebar.checkbox("Show intermediate results", value=True)
+
+# The use_gpu variable still needs to be defined for the code to work
+# but we'll hide it from the UI
+use_gpu = True  # default to True, but hide from UI
+
+# Sidebar footer
+st.sidebar.markdown("---")
+st.sidebar.markdown("""
+<div style="text-align: center; color: #666666; font-size: 0.8rem;">
+    <p>Softwood Lumber Board</p>
+    <p>Document Analysis Tool</p>
+</div>
+""", unsafe_allow_html=True)
 # API key input section
-with st.expander("API Keys Configuration", expanded=True):
-    st.info("API keys are required for LlamaParse, Gemini AI, and OpenAI. They will be temporarily stored for this session only.")
+# with st.expander("API Keys Configuration", expanded=True):
+#     st.info("API keys are required for LlamaParse, Gemini AI, and OpenAI. They will be temporarily stored for this session only.")
     
-    # Load keys from .env if available
-    llama_key_default = os.getenv("LLAMA_CLOUD_API_KEY", "")
-    gemini_key_default = os.getenv("GEMINI_API_KEY", "")
-    openai_key_default = os.getenv("OPENAI_API_KEY", "")
+#     # Load keys from .env if available
+#     llama_key_default = os.getenv("LLAMA_CLOUD_API_KEY", "")
+#     gemini_key_default = os.getenv("GEMINI_API_KEY", "")
+#     openai_key_default = os.getenv("OPENAI_API_KEY", "")
     
-    llama_key = st.text_input("LlamaParse API Key", value=llama_key_default, type="password")
-    gemini_key = st.text_input("Gemini API Key", value=gemini_key_default, type="password")
-    openai_key = st.text_input("OpenAI API Key", value=openai_key_default, type="password")
+#     llama_key = st.text_input("LlamaParse API Key", value=llama_key_default, type="password")
+#     gemini_key = st.text_input("Gemini API Key", value=gemini_key_default, type="password")
+#     openai_key = st.text_input("OpenAI API Key", value=openai_key_default, type="password")
 
 # Hidden configuration - automatically create needed files and folders
 prompts_dir = "prompts"
@@ -137,13 +241,18 @@ database_path = os.path.join(os.getcwd(), "propositions_rows.csv")
 threshold = 0.6
 top_k = 3
 
-# File upload
-uploaded_file = st.file_uploader("Upload a document (PDF, DOCX, DOC, PPTX, PPT, or HTML)", 
-                               type=["pdf", "docx", "doc", "pptx", "ppt", "html"])
+# Main content area - File upload section
+st.markdown("""
+<div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e9ecef; margin: 1rem 0;">
+    <h3 style="color: #7fbc41; margin-top: 0;">Document Upload 📄</h3>
+    <p>Please upload your document to begin analysis. Supported formats: PDF, DOCX, DOC, PPTX, PPT, or HTML.</p>
+</div>
+""", unsafe_allow_html=True)
 
-# Process flow control
-show_intermediate = st.checkbox("Show intermediate results", value=True)
-use_gpu = st.checkbox("Use GPU for QueryJson (if available)", value=True)
+# File upload with styled container
+uploaded_file = st.file_uploader("Upload a document", 
+                              type=["pdf", "docx", "doc", "pptx", "ppt", "html"])
+
 
 # Execute pipeline function
 def execute_pipeline(input_file, doc_id):
@@ -369,17 +478,23 @@ def execute_pipeline(input_file, doc_id):
                     pass
 
 # Process button
+# Process button styling
+# Process button
 if uploaded_file is not None:
     # Save the uploaded file to a temporary file
     with tempfile.NamedTemporaryFile(delete=False, suffix="." + uploaded_file.name.split(".")[-1]) as tmp_file:
         tmp_file.write(uploaded_file.getvalue())
         input_filepath = tmp_file.name
-        
+    
     # Extract document ID from filename - first 10 characters
     doc_id = uploaded_file.name[:10]
-    st.write(f"Using document ID: {doc_id}")
+    st.write(f"Document ID: **{doc_id}**")
     
-    if st.button("Process Document"):
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        process_button = st.button("Process Document 🌲", use_container_width=True)
+    
+    if process_button:
         with st.spinner("Processing document... This may take several minutes depending on document size."):
             try:
                 results = execute_pipeline(input_filepath, doc_id)
@@ -440,4 +555,13 @@ else:
 
 # Footer
 st.markdown("---")
-st.markdown("Document Analysis Pipeline Tool")
+st.markdown("""
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0;">
+    <div style="color: #666666; font-size: 0.8rem;">
+        Softwood Lumber Board Document Checker 🌲
+    </div>
+    <div style="color: #7fbc41; font-weight: bold; font-size: 0.9rem;">
+        SLB &copy; 2025
+    </div>
+</div>
+""", unsafe_allow_html=True)

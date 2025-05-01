@@ -6,8 +6,9 @@ from tqdm import tqdm
 import time
 
 # Set your OpenAI API key here
-OPENAI_API_KEY = ""  # Replace with your actual API key
-
+import os
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+print(f"OpenAI API Key: {OPENAI_API_KEY}")  # Debugging line to check if the key is set
 def load_json(file_path):
     """Load and parse the JSON file."""
     with open(file_path, 'r') as file:
@@ -127,9 +128,10 @@ def main():
     args = parser.parse_args()
     
     # Check if API key is set
-    if OPENAI_API_KEY == "your_api_key_here":
-        print("Please set your OpenAI API key in the script.")
+    if not OPENAI_API_KEY:
+        print("Please set your OpenAI API key in the environment variable OPENAI_API_KEY.")
         return
+
     
     # Load the JSON data
     data = load_json(args.input)
