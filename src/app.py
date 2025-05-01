@@ -310,7 +310,7 @@ def execute_pipeline(input_file, doc_id):
             # Step 1: Convert document to markdown using LlamaParse
             st.write("Step 1: Converting document to markdown...")
             progress_bar = st.progress(0)
-            
+            print("Converting document to markdown...")
             llamaparse_cmd = f"python llamaparse_converter.py -i \"{input_file}\" -o \"{markdown_path}\""
             process = subprocess.Popen(
                 llamaparse_cmd, 
@@ -330,7 +330,7 @@ def execute_pipeline(input_file, doc_id):
             stdout, stderr = process.communicate()
             
             if returncode != 0:
-                st.error("LlamaParse conversion failed")
+                st.error("LlamaParse conversion failed here you fix now dumbass")
                 return None
             
             progress_bar.progress(0.2)
