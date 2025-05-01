@@ -67,9 +67,31 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+def get_asset_path(filename):
+    # Check if the file exists in different possible locations
+    possible_locations = [
+        os.path.join("assets", filename),  # /assets/filename
+        os.path.join("src", "assets", filename),  # /src/assets/filename
+        os.path.join("src", filename),  # /src/filename
+        filename  # /filename (root directory)
+    ]
+    
+    for location in possible_locations:
+        if os.path.exists(location):
+            return location
+    
+    # If file not found, use a placeholder or return None
+    return None
 
 # Load and display SLB logo
-st.image("src/SLB-LOGO.PNG", width=200)
+logo_path = get_asset_path("SLB-LOGO.PNG")
+if logo_path:
+    st.image(logo_path, width=200)
+else:
+    st.write("Logo not found. Using text instead.")
+    st.markdown("# SLB")
+
+# Same for the sidebar
 
 # Title and description with tree emoji
 st.title("Softwood Lumber Board Document Checker 🌲")
@@ -90,7 +112,12 @@ This app processes documents through a pipeline:
 5. Select best citations using OpenAI
 """)
 # Create sidebar for configuration
-st.sidebar.image("SLB-LOGO.PNG", width=150)
+#st.sidebar.image("SLB-LOGO.PNG", width=150)
+logo_path = get_asset_path("SLB-LOGO.PNG")
+if logo_path:
+    st.sidebar.image(logo_path, width=150)
+else:
+    st.sidebar.markdown("## SLB")
 st.sidebar.title("Configuration")
 st.sidebar.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
