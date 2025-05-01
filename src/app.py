@@ -8,9 +8,6 @@ from dotenv import load_dotenv
 import time
 import pandas as pd
 
-# Add the current directory to Python's module search path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 # Load environment variables from .env file
 load_dotenv()
 
@@ -20,11 +17,6 @@ st.set_page_config(
     page_icon="🌲",
     layout="wide"
 )
-
-# Debug information
-st.sidebar.write("Python Path:", sys.path)
-st.sidebar.write("Current Directory:", os.getcwd())
-st.sidebar.write("Files in current directory:", os.listdir())
 
 # Title and description
 # Custom CSS for SLB branding
@@ -168,6 +160,18 @@ st.sidebar.markdown("""
     <p>Document Analysis Tool</p>
 </div>
 """, unsafe_allow_html=True)
+# API key input section
+# with st.expander("API Keys Configuration", expanded=True):
+#     st.info("API keys are required for LlamaParse, Gemini AI, and OpenAI. They will be temporarily stored for this session only.")
+    
+#     # Load keys from .env if available
+#     llama_key_default = os.getenv("LLAMA_CLOUD_API_KEY", "")
+#     gemini_key_default = os.getenv("GEMINI_API_KEY", "")
+#     openai_key_default = os.getenv("OPENAI_API_KEY", "")
+    
+#     llama_key = st.text_input("LlamaParse API Key", value=llama_key_default, type="password")
+#     gemini_key = st.text_input("Gemini API Key", value=gemini_key_default, type="password")
+#     openai_key = st.text_input("OpenAI API Key", value=openai_key_default, type="password")
 
 # Hidden configuration - automatically create needed files and folders
 prompts_dir = "prompts"
@@ -311,13 +315,10 @@ def execute_pipeline(input_file, doc_id):
             progress_bar = st.progress(0)
             print("Converting document to markdown...")
             
-            # Use proper path to llamaparse_converter.py
+            # Use os.path.join to create proper file paths
             llamaparse_script = os.path.join(current_dir, "llamaparse_converter.py")
-            
-            # Try running with Python module syntax
             llamaparse_cmd = f"python \"{llamaparse_script}\" -i \"{input_file}\" -o \"{markdown_path}\""
             
-            st.write(f"Running command: {llamaparse_cmd}")
             process = subprocess.Popen(
                 llamaparse_cmd, 
                 shell=True,
@@ -332,12 +333,8 @@ def execute_pipeline(input_file, doc_id):
                 progress_bar.progress(0.2)  # Indicate process is running
                 time.sleep(1)
             
+            returncode = process.wait()
             stdout, stderr = process.communicate()
-            returncode = process.poll()
-            
-            # For debugging
-            st.write(f"Return Code: {returncode}")
-            st.write(f"STDERR: {stderr}")
             
             if returncode != 0:
                 st.error(f"LlamaParse conversion failed with error: {stderr}")
