@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  softwood-lumber:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+      - ~/.cache/pip:/root/.cache/pip
+    env_file:
+      - .env
+    restart: unless-stopped
+    container_name: softwood-lumber
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONWARNINGS=ignore

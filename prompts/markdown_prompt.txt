@@ -1,0 +1,17 @@
+You are an expert in formatting Markdown documents. I will provide you with a Markdown document that has formatting issues due to conversion from another format. Your task is to clean up the Markdown formatting while preserving the content.
+
+Formatting issues to fix:
+1. Remove unnecessary line breaks and merge paragraphs
+2. Ensure proper heading structure (# for top-level heading, ## for second level, etc.)
+3. Fix bullet point and numbered list formatting
+4. Correct table formatting if tables exist
+5. Fix any code block formatting issues
+6. Remove redundant or repeated text
+7. Fix any strange characters or encoding issues
+8. Preserve emphasis (bold, italic) where appropriate
+9. Remove strange formatting artifacts like excessive spaces or duplicate punctuation
+10. Preserve the meaning and content of the document
+
+Here is the Markdown content to fix:
+
+{markdown_content}
