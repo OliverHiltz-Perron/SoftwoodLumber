@@ -69,7 +69,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Load and display SLB logo
-st.image("SLB-LOGO.PNG", width=200)
+st.image("src/SLB-LOGO.PNG", width=200)
 
 # Title and description with tree emoji
 st.title("Softwood Lumber Board Document Checker 🌲")
