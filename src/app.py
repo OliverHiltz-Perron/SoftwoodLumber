@@ -6,6 +6,7 @@ import sys
 import json
 from dotenv import load_dotenv
 import time
+import pandas as pd
 
 # Load environment variables from .env file
 load_dotenv()
@@ -25,18 +26,21 @@ This app processes documents through a pipeline:
 2. Fix markdown formatting with Gemini AI
 3. Extract propositions using Gemini AI
 4. Find similar propositions in a database
+5. Select best citations using OpenAI
 """)
 
 # API key input section
 with st.expander("API Keys Configuration", expanded=True):
-    st.info("API keys are required for LlamaParse and Gemini AI. They will be temporarily stored for this session only.")
+    st.info("API keys are required for LlamaParse, Gemini AI, and OpenAI. They will be temporarily stored for this session only.")
     
     # Load keys from .env if available
     llama_key_default = os.getenv("LLAMA_CLOUD_API_KEY", "")
     gemini_key_default = os.getenv("GEMINI_API_KEY", "")
+    openai_key_default = os.getenv("OPENAI_API_KEY", "")
     
     llama_key = st.text_input("LlamaParse API Key", value=llama_key_default, type="password")
     gemini_key = st.text_input("Gemini API Key", value=gemini_key_default, type="password")
+    openai_key = st.text_input("OpenAI API Key", value=openai_key_default, type="password")
 
 # Hidden configuration - automatically create needed files and folders
 prompts_dir = "prompts"
@@ -143,25 +147,28 @@ use_gpu = st.checkbox("Use GPU for QueryJson (if available)", value=True)
 
 # Execute pipeline function
 def execute_pipeline(input_file, doc_id):
-    if not llama_key or not gemini_key:
-        st.error("Both LlamaParse and Gemini API keys are required")
+    if not llama_key or not gemini_key or not openai_key:
+        st.error("LlamaParse, Gemini, and OpenAI API keys are all required")
         return None
     
     # Set environment variables for the subprocess
     env = os.environ.copy()
     env["LLAMA_CLOUD_API_KEY"] = llama_key
     env["GEMINI_API_KEY"] = gemini_key
+    env["OPENAI_API_KEY"] = openai_key
     
     # Temporary files for intermediate results
     with tempfile.NamedTemporaryFile(suffix=".md", delete=False) as markdown_file, \
          tempfile.NamedTemporaryFile(suffix=".md", delete=False) as fixed_markdown_file, \
          tempfile.NamedTemporaryFile(suffix=".json", delete=False) as propositions_file, \
-         tempfile.NamedTemporaryFile(suffix=".json", delete=False) as final_output_file:
+         tempfile.NamedTemporaryFile(suffix=".json", delete=False) as queryjson_output_file, \
+         tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as citations_file:
         
         markdown_path = markdown_file.name
         fixed_markdown_path = fixed_markdown_file.name
         propositions_path = propositions_file.name
-        output_path = final_output_file.name
+        queryjson_output_path = queryjson_output_file.name
+        citations_path = citations_file.name
         
         try:
             # Step 1: Convert document to markdown using LlamaParse
@@ -180,7 +187,7 @@ def execute_pipeline(input_file, doc_id):
             
             # Monitor process
             while process.poll() is None:
-                progress_bar.progress(0.25)  # Indicate process is running
+                progress_bar.progress(0.2)  # Indicate process is running
                 time.sleep(1)
             
             returncode = process.wait()
@@ -190,7 +197,7 @@ def execute_pipeline(input_file, doc_id):
                 st.error("LlamaParse conversion failed")
                 return None
             
-            progress_bar.progress(0.25)
+            progress_bar.progress(0.2)
             
             # Show intermediate result if enabled
             if show_intermediate:
@@ -213,7 +220,7 @@ def execute_pipeline(input_file, doc_id):
             )
             
             while process.poll() is None:
-                progress_bar.progress(0.5)  # Indicate process is running
+                progress_bar.progress(0.4)  # Indicate process is running
                 time.sleep(1)
             
             returncode = process.wait()
@@ -223,7 +230,7 @@ def execute_pipeline(input_file, doc_id):
                 st.error("Markdown fixing failed")
                 return None
             
-            progress_bar.progress(0.5)
+            progress_bar.progress(0.4)
             
             # Show intermediate result if enabled
             if show_intermediate:
@@ -246,7 +253,7 @@ def execute_pipeline(input_file, doc_id):
             )
             
             while process.poll() is None:
-                progress_bar.progress(0.75)  # Indicate process is running
+                progress_bar.progress(0.6)  # Indicate process is running
                 time.sleep(1)
             
             returncode = process.wait()
@@ -256,7 +263,7 @@ def execute_pipeline(input_file, doc_id):
                 st.error("Proposition extraction failed")
                 return None
             
-            progress_bar.progress(0.75)
+            progress_bar.progress(0.6)
             
             # Show intermediate result if enabled
             if show_intermediate:
@@ -271,9 +278,42 @@ def execute_pipeline(input_file, doc_id):
             # Add GPU flag if selected
             gpu_flag = "--use_gpu" if use_gpu else "--no_gpu"
             
-            queryjson_cmd = f"python QueryJson.py -i \"{propositions_path}\" -o \"{output_path}\" -d \"{database_path}\" --threshold {threshold} --top_k {top_k} {gpu_flag}"
+            queryjson_cmd = f"python QueryJson.py -i \"{propositions_path}\" -o \"{queryjson_output_path}\" -d \"{database_path}\" --threshold {threshold} --top_k {top_k} {gpu_flag}"
             process = subprocess.Popen(
                 queryjson_cmd, 
+                shell=True,
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            
+            while process.poll() is None:
+                progress_bar.progress(0.8)  # Indicate process is running
+                time.sleep(1)
+            
+            returncode = process.wait()
+            stdout, stderr = process.communicate()
+            
+            if returncode != 0:
+                st.error("QueryJson processing failed")
+                return None
+            
+            progress_bar.progress(0.8)
+            
+            # Show intermediate result if enabled
+            if show_intermediate:
+                with open(queryjson_output_path, 'r', encoding='utf-8') as f:
+                    queryjson_output = json.load(f)
+                with st.expander("Similar Propositions (Step 4)", expanded=False):
+                    st.json(queryjson_output)
+            
+            # Step 5: Select best citations
+            st.write("Step 5: Selecting best citations...")
+            
+            citation_cmd = f"python citation.py --input \"{queryjson_output_path}\" --output \"{citations_path}\""
+            process = subprocess.Popen(
+                citation_cmd, 
                 shell=True,
                 env=env,
                 stdout=subprocess.PIPE,
@@ -289,20 +329,27 @@ def execute_pipeline(input_file, doc_id):
             stdout, stderr = process.communicate()
             
             if returncode != 0:
-                st.error("QueryJson processing failed")
+                st.error("Citation selection failed")
+                st.error(f"Error: {stderr}")
                 return None
             
             progress_bar.progress(1.0)
             
-            # Read the final output
-            with open(output_path, 'r', encoding='utf-8') as f:
-                final_output = json.load(f)
+            # Read the QueryJson output and citations CSV
+            with open(queryjson_output_path, 'r', encoding='utf-8') as f:
+                queryjson_output = json.load(f)
                 
-            return final_output
+            citations_df = pd.read_csv(citations_path)
+                
+            # Return both outputs
+            return {
+                "queryjson_output": queryjson_output,
+                "citations_df": citations_df
+            }
                 
         finally:
             # Clean up temporary files
-            for temp_file in [markdown_path, fixed_markdown_path, propositions_path, output_path]:
+            for temp_file in [markdown_path, fixed_markdown_path, propositions_path, queryjson_output_path, citations_path]:
                 try:
                     if os.path.exists(temp_file):
                         # Instead of trying to delete immediately, give processes time to release the file
@@ -335,25 +382,55 @@ if uploaded_file is not None:
     if st.button("Process Document"):
         with st.spinner("Processing document... This may take several minutes depending on document size."):
             try:
-                final_output = execute_pipeline(input_filepath, doc_id)
+                results = execute_pipeline(input_filepath, doc_id)
                 
-                if final_output:
+                if results:
                     st.success("Processing complete!")
                     
-                    # Display final output
-                    with st.expander("Final Output", expanded=True):
-                        st.json(final_output)
+                    # Display QueryJson output
+                    with st.expander("Query Results (Step 4)", expanded=False):
+                        st.json(results["queryjson_output"])
                     
-                    # Provide download link
-                    download_json = json.dumps(final_output, indent=2)
+                    # Display Citations output
+                    with st.expander("Citation Results (Step 5)", expanded=True):
+                        st.dataframe(results["citations_df"])
+                    
+                    # Create a function to download both files
+                    def download_all_files():
+                        # Save both files to temporary locations
+                        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as json_file, \
+                             tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as csv_file, \
+                             tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as zip_file:
+                            
+                            # Write the JSON results
+                            json_path = json_file.name
+                            with open(json_path, 'w', encoding='utf-8') as f:
+                                json.dump(results["queryjson_output"], f, indent=2)
+                            
+                            # Write the CSV results
+                            csv_path = csv_file.name
+                            results["citations_df"].to_csv(csv_path, index=False)
+                            
+                            # Create a zip file containing both files
+                            import zipfile
+                            zip_path = zip_file.name
+                            with zipfile.ZipFile(zip_path, 'w') as zipf:
+                                zipf.write(json_path, arcname="query_results.json")
+                                zipf.write(csv_path, arcname="best_citations.csv")
+                            
+                            # Read the zip file for download
+                            with open(zip_path, 'rb') as f:
+                                return f.read()
+                            
+                    # Create single download button for both files
                     st.download_button(
-                        label="Download Results as JSON",
-                        data=download_json,
-                        file_name="document_analysis_results.json",
-                        mime="application/json"
+                        label="Download All Results",
+                        data=download_all_files(),
+                        file_name="document_analysis_results.zip",
+                        mime="application/zip"
                     )
             except Exception as e:
-                st.error("An error occurred during processing")
+                st.error(f"An error occurred during processing: {str(e)}")
             finally:
                 # Clean up the temporary input file
                 if os.path.exists(input_filepath):
