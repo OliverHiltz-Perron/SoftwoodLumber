@@ -330,7 +330,7 @@ def execute_pipeline(input_file, doc_id):
             stdout, stderr = process.communicate()
             
             if returncode != 0:
-                st.error("LlamaParse conversion failed here you fix now dumbass")
+                st.error(f"LlamaParse conversion failed with error: {stderr}")
                 return None
             
             progress_bar.progress(0.2)
