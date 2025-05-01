@@ -1,25 +1,21 @@
+# Core dependencies
 google-generativeai>=0.3.0
 python-dotenv>=1.0.0
 requests>=2.31.0
 pandas>=2.0.0
 colorama>=0.4.6
 tqdm>=4.66.0
+
 # Web Application
-streamlit==1.28.0
-python-dotenv==1.0.0
-pandas==2.1.1
+streamlit==1.28.0  # Specific version used in the app
 
 # Document parsing
-llama-cloud-services==0.0.4
-llama-index-core==0.10.1
-nest-asyncio==1.5.8
+llama-cloud-services>=0.6.20  # Updated version (0.0.4 is not available)
+llama-index-core>=0.10.1
+nest-asyncio>=1.5.8
 
 # AI Models
-google-generativeai==0.3.1
-openai==1.6.1
-transformers==4.35.2
-torch==2.1.0
-numpy==1.26.1
-
-# Utilities
-tqdm==4.66.1
+openai>=1.6.1
+transformers>=4.35.2
+torch>=2.1.0
+numpy>=1.26.1
