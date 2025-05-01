@@ -293,6 +293,9 @@ def execute_pipeline(input_file, doc_id):
     env["GEMINI_API_KEY"] = gemini_key
     env["OPENAI_API_KEY"] = openai_key
     
+    # Get the current directory for relative paths
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
     # Temporary files for intermediate results
     with tempfile.NamedTemporaryFile(suffix=".md", delete=False) as markdown_file, \
          tempfile.NamedTemporaryFile(suffix=".md", delete=False) as fixed_markdown_file, \
@@ -311,7 +314,11 @@ def execute_pipeline(input_file, doc_id):
             st.write("Step 1: Converting document to markdown...")
             progress_bar = st.progress(0)
             print("Converting document to markdown...")
-            llamaparse_cmd = f"python llamaparse_converter.py -i \"{input_file}\" -o \"{markdown_path}\""
+            
+            # Use os.path.join to create proper file paths
+            llamaparse_script = os.path.join(current_dir, "llamaparse_converter.py")
+            llamaparse_cmd = f"python \"{llamaparse_script}\" -i \"{input_file}\" -o \"{markdown_path}\""
+            
             process = subprocess.Popen(
                 llamaparse_cmd, 
                 shell=True,
@@ -345,7 +352,9 @@ def execute_pipeline(input_file, doc_id):
             # Step 2: Fix markdown formatting with Gemini AI
             st.write("Step 2: Fixing markdown formatting...")
             
-            markdown_fixer_cmd = f"python markdown_fixer.py -i \"{markdown_path}\" -o \"{fixed_markdown_path}\" --prompt \"{markdown_prompt_path}\""
+            markdown_fixer_script = os.path.join(current_dir, "markdown_fixer.py")
+            markdown_fixer_cmd = f"python \"{markdown_fixer_script}\" -i \"{markdown_path}\" -o \"{fixed_markdown_path}\" --prompt \"{markdown_prompt_path}\""
+            
             process = subprocess.Popen(
                 markdown_fixer_cmd, 
                 shell=True,
@@ -378,7 +387,9 @@ def execute_pipeline(input_file, doc_id):
             # Step 3: Extract propositions using Gemini AI
             st.write("Step 3: Extracting propositions...")
             
-            propositions_cmd = f"python propositions.py -i \"{fixed_markdown_path}\" -o \"{propositions_path}\" --prompt \"{proposition_prompt_path}\" --doc-id \"{doc_id}\""
+            propositions_script = os.path.join(current_dir, "propositions.py")
+            propositions_cmd = f"python \"{propositions_script}\" -i \"{fixed_markdown_path}\" -o \"{propositions_path}\" --prompt \"{proposition_prompt_path}\" --doc-id \"{doc_id}\""
+            
             process = subprocess.Popen(
                 propositions_cmd, 
                 shell=True,
@@ -414,7 +425,9 @@ def execute_pipeline(input_file, doc_id):
             # Add GPU flag if selected
             gpu_flag = "--use_gpu" if use_gpu else "--no_gpu"
             
-            queryjson_cmd = f"python QueryJson.py -i \"{propositions_path}\" -o \"{queryjson_output_path}\" -d \"{database_path}\" --threshold {threshold} --top_k {top_k} {gpu_flag}"
+            queryjson_script = os.path.join(current_dir, "QueryJson.py")
+            queryjson_cmd = f"python \"{queryjson_script}\" -i \"{propositions_path}\" -o \"{queryjson_output_path}\" -d \"{database_path}\" --threshold {threshold} --top_k {top_k} {gpu_flag}"
+            
             process = subprocess.Popen(
                 queryjson_cmd, 
                 shell=True,
@@ -447,7 +460,9 @@ def execute_pipeline(input_file, doc_id):
             # Step 5: Select best citations
             st.write("Step 5: Selecting best citations...")
             
-            citation_cmd = f"python citation.py --input \"{queryjson_output_path}\" --output \"{citations_path}\""
+            citation_script = os.path.join(current_dir, "citation.py")
+            citation_cmd = f"python \"{citation_script}\" --input \"{queryjson_output_path}\" --output \"{citations_path}\""
+            
             process = subprocess.Popen(
                 citation_cmd, 
                 shell=True,
