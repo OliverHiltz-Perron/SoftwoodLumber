@@ -7,7 +7,16 @@ import json
 from dotenv import load_dotenv
 import time
 import pandas as pd
+# At the beginning of app.py
+import subprocess
+import sys
 
+# Try to install missing dependencies (useful for some hosting environments)
+try:
+    import nest_asyncio
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "nest_asyncio"])
+    import nest_asyncio
 # Load environment variables from .env file
 load_dotenv()
 
