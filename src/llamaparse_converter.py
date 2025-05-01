@@ -63,6 +63,12 @@ def main():
     Main function to handle argument parsing, LlamaParse initialization, 
     and document processing based on input type.
     """
+    print(f"API key valid: {bool(api_key)}")
+    print(f"API key length: {len(api_key) if api_key else 0}")
+    # Add before API call
+    print("About to make API call...")
+    # Add after API call
+    print(f"API response received: {response.status_code}")
     # --- Argument Parsing ---
     cli_parser = argparse.ArgumentParser(description="Convert a document to Markdown using LlamaParse.")
     cli_parser.add_argument("-i", "--input", default="-", 
