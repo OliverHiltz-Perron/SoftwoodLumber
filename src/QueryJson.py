@@ -63,8 +63,18 @@ def find_similar_propositions(query_embedding, db_embeddings, db_propositions, t
     # Create result list
     results = []
     for idx in top_indices:
+        # Get the text for this proposition, handling different field names
+        if 'db_proposition' in db_propositions[idx]:
+            proposition_text = db_propositions[idx]['db_proposition']
+        elif 'text' in db_propositions[idx]:
+            proposition_text = db_propositions[idx]['text']
+        else:
+            # Fallback - find any string field that's not 'id'
+            text_fields = [k for k, v in db_propositions[idx].items() if isinstance(v, str) and k != 'id']
+            proposition_text = db_propositions[idx][text_fields[0]] if text_fields else "Unknown proposition"
+        
         results.append({
-            'text': db_propositions[idx]['text'],
+            'db_propositions': proposition_text,
             'id': db_propositions[idx]['id'],
             'similarity': float(similarities[idx])
         })
@@ -129,10 +139,27 @@ def load_database_embeddings(csv_path):
         # Create list of proposition dictionaries
         db_propositions = []
         for i, row in df.iterrows():
-            db_propositions.append({
-                'id': row['id'],
-                'text': row['text']
-            })
+            # Prepare proposition dictionary
+            prop_dict = {'id': row['id']}
+            
+            # Handle the text field - check for multiple possible column names
+            if 'text' in row:
+                prop_dict['db_proposition'] = row['text']
+            elif 'cleanText' in row:
+                prop_dict['db_proposition'] = row['cleanText']
+            elif 'Text' in row:
+                prop_dict['db_proposition'] = row['Text']
+            else:
+                # As a fallback, use the first string column that's not 'id' or 'embeddings'
+                text_columns = [col for col in row.index if isinstance(row[col], str) and col not in ['id', 'embeddings']]
+                if text_columns:
+                    prop_dict['db_proposition'] = row[text_columns[0]]
+                    print(f"Using column '{text_columns[0]}' for proposition text", file=sys.stderr)
+                else:
+                    prop_dict['db_proposition'] = f"Row {i}"
+                    print(f"Warning: No suitable text column found for row {i}", file=sys.stderr)
+            
+            db_propositions.append(prop_dict)
         
         print(f"Successfully loaded {len(db_embeddings)} embeddings from database", file=sys.stderr)
         return db_embeddings, db_propositions
@@ -204,8 +231,21 @@ def process_propositions_with_database(data, db_path, prefix="search_document:",
             print(f"Processing proposition {processed_count}/{len(all_propositions)}", file=sys.stderr)
             
             # Create embedding for this proposition
+            # Extract the proposition text, handling different possible field names
+            if 'cleanText' in prop:
+                prop_text = prop['cleanText']
+            elif 'Text' in prop:
+                prop_text = prop['Text']
+            elif 'text' in prop:
+                prop_text = prop['text']
+            else:
+                # If none of the expected fields are found, log and use the first string field available
+                print(f"Warning: No recognized text field found in proposition. Available fields: {list(prop.keys())}", file=sys.stderr)
+                prop_text = next((prop[key] for key in prop if isinstance(prop[key], str) and key != 'id' and key != 'sourceText'), "")
+                print(f"Using field value: {prop_text[:50]}{'...' if len(prop_text) > 50 else ''}", file=sys.stderr)
+                
             query_embedding = create_embedding(
-                text=prop['text'],
+                text=prop_text,
                 model=model,
                 tokenizer=tokenizer,
                 max_length=max_length,
@@ -282,6 +322,29 @@ def main():
     
     # Process the data
     try:
+        # First, print a sample of the data to help with debugging
+        if isinstance(data, dict) and "propositions" in data and data["propositions"]:
+            sample_prop = data["propositions"][0]
+            print(f"Sample proposition keys: {list(sample_prop.keys())}", file=sys.stderr)
+            for key, value in sample_prop.items():
+                value_preview = str(value)[:50] + ('...' if len(str(value)) > 50 else '')
+                print(f"Sample '{key}': {value_preview}", file=sys.stderr)
+        elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+            if "propositions" in data[0] and data[0]["propositions"]:
+                sample_prop = data[0]["propositions"][0]
+                print(f"Sample proposition keys: {list(sample_prop.keys())}", file=sys.stderr)
+                for key, value in sample_prop.items():
+                    value_preview = str(value)[:50] + ('...' if len(str(value)) > 50 else '')
+                    print(f"Sample '{key}': {value_preview}", file=sys.stderr)
+            else:
+                # Might be a list of propositions
+                sample_prop = data[0]
+                print(f"Sample proposition keys: {list(sample_prop.keys())}", file=sys.stderr)
+                for key, value in sample_prop.items():
+                    value_preview = str(value)[:50] + ('...' if len(str(value)) > 50 else '')
+                    print(f"Sample '{key}': {value_preview}", file=sys.stderr)
+        
+        print("Starting proposition processing...", file=sys.stderr)
         processed_data = process_propositions_with_database(
             data=data,
             db_path=args.database,
@@ -293,10 +356,13 @@ def main():
         )
         
         if processed_data is None:
-            print("Processing failed", file=sys.stderr)
+            print("Processing failed - returned None", file=sys.stderr)
             return 1
     except Exception as e:
+        import traceback
         print(f"Error processing data: {e}", file=sys.stderr)
+        print("Stack trace:", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
         return 1
     
     # Output

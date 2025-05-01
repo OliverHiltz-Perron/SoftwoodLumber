@@ -233,7 +233,7 @@ def process_content(content, doc_id, prompt_template):
             
             process_result["propositions"].append({
                 "id": proposition_id,
-                "text": proposition,
+                "cleanText": proposition,
                 "sourceText": source_text
             })
             logging.debug(f"Added proposition {proposition_id}")
