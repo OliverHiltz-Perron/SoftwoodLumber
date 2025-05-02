@@ -15,8 +15,10 @@ import sys
 # Set a placeholder OpenAI API key to prevent prompts for the key
 # This is needed because some LlamaIndex dependencies might try to use OpenAI
 os.environ["OPENAI_API_KEY"] = "placeholder-key-not-used"
-
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    print("Warning: dotenv module not found. Skipping .env file loading.", file=sys.stderr)
 from llama_cloud_services import LlamaParse
 from llama_index.core import SimpleDirectoryReader
 
