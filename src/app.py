@@ -12,11 +12,7 @@ import subprocess
 import sys
 
 # Try to install missing dependencies (useful for some hosting environments)
-try:
-    import nest_asyncio
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "nest_asyncio"])
-    import nest_asyncio
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -416,7 +412,7 @@ def execute_pipeline(input_file, doc_id):
             stdout, stderr = process.communicate()
             
             if returncode != 0:
-                st.error("Proposition extraction failed")
+                st.error("Proposition extraction failed {stderr}")
                 return None
             
             progress_bar.progress(0.6)
@@ -455,6 +451,8 @@ def execute_pipeline(input_file, doc_id):
             
             if returncode != 0:
                 st.error("QueryJson processing failed")
+                st.error(f"Error: {stderr}")
+
                 return None
             
             progress_bar.progress(0.8)

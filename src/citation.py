@@ -65,7 +65,6 @@ def select_best_citation_with_openai(proposition, database_matches):
         
         if why_line:
             why = why_line[0].replace('Why:', '').strip()
-        
         # Process the choice
         if choice == "None" or choice.lower() == "none":
             return None, "None", why
