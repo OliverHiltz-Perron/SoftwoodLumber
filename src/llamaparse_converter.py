@@ -8,7 +8,7 @@ import zipfile
 import tempfile
 import shutil
 import glob
-import nest_asyncio
+#import nest_asyncio
 import warnings
 import sys
 
@@ -21,7 +21,7 @@ from llama_cloud_services import LlamaParse
 from llama_index.core import SimpleDirectoryReader
 
 # Apply nest_asyncio patch early
-nest_asyncio.apply()
+#nest_asyncio.apply()
 
 # Additional warning suppression for any warnings that might come later
 warnings.filterwarnings("ignore")
