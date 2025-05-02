@@ -181,8 +181,8 @@ def process_propositions_with_database(data, db_path, prefix="search_document:",
     
     # Load model and tokenizer
     print("Loading model and tokenizer...", file=sys.stderr)
-    tokenizer = AutoTokenizer.from_pretrained("nomic-ai/nomic-embed-text-v2-moe")
-    model = AutoModel.from_pretrained("nomic-ai/nomic-embed-text-v2-moe", trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained("nomic-ai/nomic-embed-text-v2-moe", revision="main")
+    model = AutoModel.from_pretrained("nomic-ai/nomic-embed-text-v2-moe", revision="main", trust_remote_code=True)
     model = model.to(device)
     model.eval()
     

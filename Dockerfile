@@ -13,6 +13,9 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install additional dependencies required by nomic-ai/nomic-embed-text-v2-moe
+RUN pip install --no-cache-dir einops
+
 # Copy the application code
 COPY . .
 
