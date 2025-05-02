@@ -2,18 +2,41 @@
 
 This application processes documents related to the wood industry, extracting key information and finding relationships to a database of propositions.
 
-## Docker Setup
+## How It Works
 
-The application is containerized using Docker for easy deployment. The Docker image is optimized to be small (< 1GB) while maintaining all functionality.
+The Document Checker processes documents through a multi-stage pipeline:
+
+1. **Document Parsing**: Converts PDFs, Word documents, PowerPoint presentations, and other formats into clean Markdown text using LlamaParse
+2. **Markdown Cleaning**: Improves the formatting of the extracted text using Gemini AI
+3. **Proposition Extraction**: Identifies key propositions (statements, claims, facts) within the document
+4. **Similarity Matching**: Compares extracted propositions with a database of known propositions
+5. **Citation Selection**: Uses AI to select the best matching citations for each proposition
+
+### Using the Application
+
+1. **Upload your document** through the web interface
+2. **Review the results** in the generated output folder, which contains:
+   - Original document copy
+   - Raw extracted markdown
+   - Cleaned markdown text
+   - Extracted propositions JSON
+   - Database matches for each proposition
+   - Best citations in CSV format (if enabled)
+3. **Explore relationships** between your document and the proposition database
+
+All results are saved to a timestamped folder that opens automatically when processing is complete.
+
+## Setup
 
 ### Prerequisites
 
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
+- Python 3.8 or higher
+- Required libraries (see requirements.txt)
 
 ### API Keys
 
 The application requires the following API keys:
+
 - LlamaParse API Key
 - Gemini API Key
 - OpenAI API Key
@@ -26,56 +49,55 @@ GEMINI_API_KEY=your_gemini_key_here
 OPENAI_API_KEY=your_openai_key_here
 ```
 
-### Building and Running the Container
+## Command Line Usage
 
-1. **Create your `.env` file with the necessary API keys**
-
-2. **Build and run the container:**
+You can run the application from the command line:
 
 ```bash
-docker-compose up -d
+python document_processor.py your_document.pdf
 ```
 
-3. **Access the application:**
-   
-   Open your browser and navigate to [http://localhost:8501](http://localhost:8501)
+This will:
 
-4. **Stop the container when done:**
+1. Process your document through all stages
+2. Create a timestamped output folder
+3. Save all intermediate and final outputs
+4. Open the output folder automatically
 
-```bash
-docker-compose down
+### Command Line Options
+
+```
+usage: document_processor.py [-h] [--output-dir OUTPUT_DIR] [--database DATABASE] [--skip-citations] input
+
+Process documents to extract and match propositions
+
+positional arguments:
+  input                 Input document file (PDF, DOCX, etc.)
+
+options:
+  -h, --help            show this help message and exit
+  --output-dir OUTPUT_DIR, -d OUTPUT_DIR
+                        Output directory (default: creates a new directory based on filename)
+  --database DATABASE   Path to database CSV file with pre-computed embeddings
+  --skip-citations      Skip the citation selection step
 ```
 
-### Container Resource Management
+## Working with the Results
 
-The container is configured with resource limits to prevent excessive resource usage:
-- CPU: 1 core
-- Memory: 1GB
-
-You can adjust these limits in the `docker-compose.yml` file.
+- **JSON Output**: Review extracted propositions and database matches in structured JSON format
+- **CSV Citations**: View selected citations in CSV format for easy reference or importing into other tools
+- **Markdown Files**: Examine the document content in clean, structured text format
 
 ## Troubleshooting
 
-- **Container fails to start**: Check logs with `docker-compose logs`
-- **Application errors**: Look for error messages in the Streamlit interface
-- **Performance issues**: Consider increasing resource limits in docker-compose.yml
-
-## Docker Image Optimization Notes
-
-This Docker setup uses several techniques to keep the image size small:
-
-1. Multi-stage builds to separate build dependencies from runtime dependencies
-2. Python slim base image instead of full image
-3. Proper layer caching for efficient rebuilds
-4. Inclusion of only necessary files via .dockerignore
-5. Virtual environment to keep dependencies isolated
-6. Non-root user for improved security
+- **Application errors**: Check terminal output for detailed error messages
+- **API key errors**: Ensure your .env file is properly formatted with valid API keys
+- **Processing errors**: Check the terminal output for specific error messages from each processing stage
 
 ## Updating Dependencies
 
-If you need to update the project dependencies, modify the `requirements.txt` file and rebuild the Docker image:
+If you need to update the project dependencies, modify the `requirements.txt` file and install the updated dependencies:
 
 ```bash
-docker-compose build --no-cache app
-docker-compose up -d
+pip install -r requirements.txt
 ```
