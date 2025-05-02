@@ -1,0 +1,59 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Environment variables
+.env
+
+# Logs
+*.log
+logs/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Editor specific
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Large data files (if any)
+data/
+*.csv
+!propositions_rows.csv
+
+# Don't ignore specific required files
+!src/
+!prompts/
+!SLB-LOGO.png

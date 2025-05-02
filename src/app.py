@@ -1,33 +1,31 @@
+#!/usr/bin/env python3
 import streamlit as st
-import tempfile
 import os
-import subprocess
 import sys
 import json
+import tempfile
+import logging
 from dotenv import load_dotenv
 import time
 import pandas as pd
-# At the beginning of app.py
-import subprocess
-import sys
 
-# Try to install missing dependencies (useful for some hosting environments)
+# Import the propositions module
+from propositions import setup_logging, read_file_content, PROMPT_FILENAME, process_content
 
-# Load environment variables from .env file
+# Load environment variables
 load_dotenv()
 
 # Set page config
 st.set_page_config(
-    page_title="Softwood Lumber Board Document Checker 🌲",
-    page_icon="🌲",
+    page_title="Markdown Embeddings Generator 📝",
+    page_icon="📝",
     layout="wide"
 )
 
-# Title and description
-# Custom CSS for SLB branding
+# Custom CSS for branding
 st.markdown("""
 <style>
-    /* Primary SLB branding color */
+    /* Primary branding color */
     :root {
         --primary-color: #7fbc41;
         --text-on-primary: #FFFFFF;
@@ -38,7 +36,7 @@ st.markdown("""
         padding-top: 2rem;
     }
     
-    /* Make the title stand out with SLB branding */
+    /* Make the title stand out with branding */
     h1 {
         color: var(--primary-color);
         padding: 1rem 0;
@@ -49,7 +47,7 @@ st.markdown("""
         background-color: #f9f9f9;
     }
     
-    /* Style buttons with SLB green */
+    /* Style buttons with brand green */
     .stButton>button {
         background-color: var(--primary-color);
         color: var(--text-on-primary);
@@ -72,6 +70,7 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
 def get_asset_path(filename):
     # Check if the file exists in different possible locations
     possible_locations = [
@@ -85,44 +84,29 @@ def get_asset_path(filename):
         if os.path.exists(location):
             return location
     
-    # If file not found, use a placeholder or return None
+    # If file not found, return None
     return None
 
-# Load and display SLB logo
+# Load and display logo if available
 logo_path = get_asset_path("SLB-LOGO.PNG")
 if logo_path:
     st.image(logo_path, width=200)
-else:
-    st.write("Logo not found. Using text instead.")
-    st.markdown("# SLB")
 
-# Same for the sidebar
-
-# Title and description with tree emoji
-st.title("Softwood Lumber Board Document Checker 🌲")
+# Title and description with emoji
+st.title("Markdown Embeddings Generator 📝")
 st.markdown("""
 <div style="background-color: #7fbc41; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem;">
     <p style="color: white; margin: 0; font-size: 1.1rem;">
-        This tool analyzes documents related to the wood industry. Upload a document to extract key information, find related data in our database, and generate proper citations.
+        This tool processes clean markdown files to extract propositions and generate word embeddings.
+        Simply upload a markdown file to get started.
     </p>
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-This app processes documents through a pipeline:
-1. Convert document to markdown using LlamaParse
-2. Fix markdown formatting with Gemini AI
-3. Extract propositions using Gemini AI
-4. Find similar propositions in a database using nomic-v2 embeddings
-5. Select best citations using OpenAI
-""")
 # Create sidebar for configuration
-#st.sidebar.image("SLB-LOGO.PNG", width=150)
-logo_path = get_asset_path("SLB-LOGO.PNG")
 if logo_path:
     st.sidebar.image(logo_path, width=150)
-else:
-    st.sidebar.markdown("## SLB")
+
 st.sidebar.title("Configuration")
 st.sidebar.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
@@ -133,86 +117,35 @@ st.sidebar.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Load keys from .env if available
-llama_key_default = os.getenv("LLAMA_CLOUD_API_KEY", "")
+# Load key from .env if available
 gemini_key_default = os.getenv("GEMINI_API_KEY", "")
-openai_key_default = os.getenv("OPENAI_API_KEY", "")
-
-# Move API input fields to sidebar
-llama_key = st.sidebar.text_input("LlamaParse API Key", value=llama_key_default, type="password")
 gemini_key = st.sidebar.text_input("Gemini API Key", value=gemini_key_default, type="password")
-openai_key = st.sidebar.text_input("OpenAI API Key", value=openai_key_default, type="password")
 
-# Configuration options
+# Show intermediate results option
 st.sidebar.markdown("""
 <div style="background-color: #7fbc41; padding: 0.5rem; border-radius: 0.3rem; margin: 1.5rem 0 0.5rem 0;">
     <p style="color: white; margin: 0; font-weight: bold;">Options</p>
 </div>
 """, unsafe_allow_html=True)
 
-# Process flow control in sidebar (removing GPU option)
 show_intermediate = st.sidebar.checkbox("Show intermediate results", value=True)
-
-# The use_gpu variable still needs to be defined for the code to work
-# but we'll hide it from the UI
-use_gpu = True  # default to True, but hide from UI
 
 # Sidebar footer
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
 <div style="text-align: center; color: #666666; font-size: 0.8rem;">
-    <p>Softwood Lumber Board</p>
-    <p>Document Analysis Tool</p>
+    <p>Markdown Embeddings Generator</p>
+    <p>Powered by propositions.py</p>
 </div>
 """, unsafe_allow_html=True)
-# API key input section
-# with st.expander("API Keys Configuration", expanded=True):
-#     st.info("API keys are required for LlamaParse, Gemini AI, and OpenAI. They will be temporarily stored for this session only.")
-    
-#     # Load keys from .env if available
-#     llama_key_default = os.getenv("LLAMA_CLOUD_API_KEY", "")
-#     gemini_key_default = os.getenv("GEMINI_API_KEY", "")
-#     openai_key_default = os.getenv("OPENAI_API_KEY", "")
-    
-#     llama_key = st.text_input("LlamaParse API Key", value=llama_key_default, type="password")
-#     gemini_key = st.text_input("Gemini API Key", value=gemini_key_default, type="password")
-#     openai_key = st.text_input("OpenAI API Key", value=openai_key_default, type="password")
 
-# Hidden configuration - automatically create needed files and folders
+# Ensure prompts directory exists
 prompts_dir = "prompts"
 if not os.path.exists(prompts_dir):
     os.makedirs(prompts_dir, exist_ok=True)
 
-# Set up prompt files without showing to user
-markdown_prompt_path = os.path.join(prompts_dir, "markdown_prompt.txt")
+# Set up prompt file if it doesn't exist
 proposition_prompt_path = os.path.join(prompts_dir, "Proposition.md")
-
-# Create markdown prompt file if it doesn't exist
-if not os.path.exists(markdown_prompt_path):
-    markdown_prompt = """You are an expert in formatting Markdown documents. I will provide you with a Markdown document that has formatting issues due to conversion from another format. Your task is to clean up the Markdown formatting while preserving the content.
-
-Formatting issues to fix:
-1. Remove unnecessary line breaks and merge paragraphs
-2. Ensure proper heading structure (# for top-level heading, ## for second level, etc.)
-3. Fix bullet point and numbered list formatting
-4. Correct table formatting if tables exist
-5. Fix any code block formatting issues
-6. Remove redundant or repeated text
-7. Fix any strange characters or encoding issues
-8. Preserve emphasis (bold, italic) where appropriate
-9. Remove strange formatting artifacts like excessive spaces or duplicate punctuation
-10. Preserve the meaning and content of the document
-
-Here is the Markdown content to fix:
-
-{markdown_content}"""
-    
-    # Create directory if it doesn't exist
-    os.makedirs(os.path.dirname(markdown_prompt_path), exist_ok=True)
-    with open(markdown_prompt_path, "w", encoding="utf-8") as f:
-        f.write(markdown_prompt)
-
-# Create proposition prompt file if it doesn't exist
 if not os.path.exists(proposition_prompt_path):
     proposition_prompt = """You are an expert analyst specializing in the wood industry. Your task is to extract comprehensive, self-contained propositions from text that relate to any aspect of the wood industry ecosystem. Here is the text you need to analyze: 
 
@@ -268,349 +201,136 @@ Remember: Extract ONLY the propositions without any additional text, separating 
     with open(proposition_prompt_path, "w", encoding="utf-8") as f:
         f.write(proposition_prompt)
 
-# Hidden database configuration
-database_path = os.path.join(os.getcwd(), "propositions_rows.csv")
-threshold = 0.6
-top_k = 3
-
 # Main content area - File upload section
 st.markdown("""
 <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e9ecef; margin: 1rem 0;">
-    <h3 style="color: #7fbc41; margin-top: 0;">Document Upload 📄</h3>
-    <p>Please upload your document to begin analysis. Supported formats: PDF, DOCX, DOC, PPTX, PPT, or HTML.</p>
+    <h3 style="color: #7fbc41; margin-top: 0;">Markdown Upload 📄</h3>
+    <p>Please upload a clean markdown file to begin processing.</p>
 </div>
 """, unsafe_allow_html=True)
 
 # File upload with styled container
-uploaded_file = st.file_uploader("Upload a document", 
-                              type=["pdf", "docx", "doc", "pptx", "ppt", "html"])
+uploaded_file = st.file_uploader("Upload a markdown file", type=["md", "markdown", "txt"])
 
+# Set up logging for the Streamlit app
+def setup_streamlit_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler("streamlit_app.log"),
+            logging.StreamHandler(sys.stderr)
+        ]
+    )
 
-# Execute pipeline function
-def execute_pipeline(input_file, doc_id):
-    if not llama_key or not gemini_key or not openai_key:
-        st.error("LlamaParse, Gemini, and OpenAI API keys are all required")
+# Process the markdown file
+def process_markdown_file(file_content, doc_id, show_intermediate):
+    if not gemini_key:
+        st.error("Gemini API key is required")
         return None
     
     # Set environment variables for the subprocess
-    env = os.environ.copy()
-    env["LLAMA_CLOUD_API_KEY"] = llama_key
-    env["GEMINI_API_KEY"] = gemini_key
-    env["OPENAI_API_KEY"] = openai_key
+    os.environ["GEMINI_API_KEY"] = gemini_key
+    
+    # Set up logging
+    setup_streamlit_logging()
+    logging.info(f"Processing markdown with document ID: {doc_id}")
     
     # Get the current directory for relative paths
     current_dir = os.path.dirname(os.path.abspath(__file__))
     
-    # Temporary files for intermediate results
-    with tempfile.NamedTemporaryFile(suffix=".md", delete=False) as markdown_file, \
-         tempfile.NamedTemporaryFile(suffix=".md", delete=False) as fixed_markdown_file, \
-         tempfile.NamedTemporaryFile(suffix=".json", delete=False) as propositions_file, \
-         tempfile.NamedTemporaryFile(suffix=".json", delete=False) as queryjson_output_file, \
-         tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as citations_file:
-        
-        markdown_path = markdown_file.name
-        fixed_markdown_path = fixed_markdown_file.name
-        propositions_path = propositions_file.name
-        queryjson_output_path = queryjson_output_file.name
-        citations_path = citations_file.name
-        
-        try:
-            # Step 1: Convert document to markdown using LlamaParse
-            st.write("Step 1: Converting document to markdown...")
-            progress_bar = st.progress(0)
-            print("Converting document to markdown...")
-            
-            # Use os.path.join to create proper file paths
-            llamaparse_script = os.path.join(current_dir, "llamaparse_converter.py")
-            llamaparse_cmd = f"python \"{llamaparse_script}\" -i \"{input_file}\" -o \"{markdown_path}\""
-            
-            process = subprocess.Popen(
-                llamaparse_cmd, 
-                shell=True,
-                env=env,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
-            
-            # Monitor process
-            while process.poll() is None:
-                progress_bar.progress(0.2)  # Indicate process is running
-                time.sleep(1)
-            
-            returncode = process.wait()
-            stdout, stderr = process.communicate()
-            
-            if returncode != 0:
-                st.error(f"LlamaParse conversion failed with error: {stderr}")
-                return None
-            
-            progress_bar.progress(0.2)
-            
-            # Show intermediate result if enabled
-            if show_intermediate:
-                with open(markdown_path, 'r', encoding='utf-8') as f:
-                    markdown_content = f.read()
-                with st.expander("Markdown Output (Step 1)", expanded=False):
-                    st.markdown(markdown_content)
-            
-            # Step 2: Fix markdown formatting with Gemini AI
-            st.write("Step 2: Fixing markdown formatting...")
-            
-            markdown_fixer_script = os.path.join(current_dir, "markdown_fixer.py")
-            markdown_fixer_cmd = f"python \"{markdown_fixer_script}\" -i \"{markdown_path}\" -o \"{fixed_markdown_path}\" --prompt \"{markdown_prompt_path}\""
-            
-            process = subprocess.Popen(
-                markdown_fixer_cmd, 
-                shell=True,
-                env=env,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
-            
-            while process.poll() is None:
-                progress_bar.progress(0.4)  # Indicate process is running
-                time.sleep(1)
-            
-            returncode = process.wait()
-            stdout, stderr = process.communicate()
-            
-            if returncode != 0:
-                st.error("Markdown fixing failed")
-                return None
-            
-            progress_bar.progress(0.4)
-            
-            # Show intermediate result if enabled
-            if show_intermediate:
-                with open(fixed_markdown_path, 'r', encoding='utf-8') as f:
-                    fixed_markdown_content = f.read()
-                with st.expander("Fixed Markdown (Step 2)", expanded=False):
-                    st.markdown(fixed_markdown_content)
-            
-            # Step 3: Extract propositions using Gemini AI
-            st.write("Step 3: Extracting propositions...")
-            
-            propositions_script = os.path.join(current_dir, "propositions.py")
-            propositions_cmd = f"python \"{propositions_script}\" -i \"{fixed_markdown_path}\" -o \"{propositions_path}\" --prompt \"{proposition_prompt_path}\" --doc-id \"{doc_id}\""
-            
-            process = subprocess.Popen(
-                propositions_cmd, 
-                shell=True,
-                env=env,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
-            
-            while process.poll() is None:
-                progress_bar.progress(0.6)  # Indicate process is running
-                time.sleep(1)
-            
-            returncode = process.wait()
-            stdout, stderr = process.communicate()
-            
-            if returncode != 0:
-                st.error("Proposition extraction failed {stderr}")
-                return None
-            
-            progress_bar.progress(0.6)
-            
-            # Show intermediate result if enabled
-            if show_intermediate:
-                with open(propositions_path, 'r', encoding='utf-8') as f:
-                    propositions_content = json.load(f)
-                with st.expander("Extracted Propositions (Step 3)", expanded=False):
-                    st.json(propositions_content)
-            
-            # Step 4: Find similar propositions in database
-            st.write("Step 4: Finding similar propositions...")
-            
-            # Add GPU flag if selected
-            gpu_flag = "--use_gpu" if use_gpu else "--no_gpu"
-            
-            queryjson_script = os.path.join(current_dir, "QueryJson.py")
-            queryjson_cmd = f"python \"{queryjson_script}\" -i \"{propositions_path}\" -o \"{queryjson_output_path}\" -d \"{database_path}\" --threshold {threshold} --top_k {top_k} {gpu_flag}"
-            
-            process = subprocess.Popen(
-                queryjson_cmd, 
-                shell=True,
-                env=env,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
-            
-            while process.poll() is None:
-                progress_bar.progress(0.8)  # Indicate process is running
-                time.sleep(1)
-            
-            returncode = process.wait()
-            stdout, stderr = process.communicate()
-            
-            if returncode != 0:
-                st.error("QueryJson processing failed")
-                st.error(f"Error: {stderr}")
+    # Get the prompt template path
+    prompt_path = os.path.join(current_dir, "prompts", "Proposition.md")
+    
+    # If not found in current directory, try looking in parent directory
+    if not os.path.exists(prompt_path):
+        prompt_path = os.path.join(current_dir, "..", "prompts", "Proposition.md")
+    
+    logging.info(f"Using prompt template at: {prompt_path}")
+    prompt_template = read_file_content(prompt_path)
+    
+    if prompt_template is None:
+        logging.error(f"Failed to read prompt template")
+        st.error("Failed to read proposition prompt template")
+        return None
+    
+    # Show the markdown content if intermediate results are enabled
+    if show_intermediate:
+        with st.expander("Markdown Content", expanded=False):
+            st.markdown(file_content)
+    
+    # Process the content
+    try:
+        result = process_content(file_content, doc_id, prompt_template)
+        logging.info(f"Processing complete. Extracted {len(result.get('propositions', []))} propositions")
+        return result
+    except Exception as e:
+        logging.exception(f"Error processing content: {e}")
+        st.error(f"Error processing content: {str(e)}")
+        return None
 
-                return None
-            
-            progress_bar.progress(0.8)
-            
-            # Show intermediate result if enabled
-            if show_intermediate:
-                with open(queryjson_output_path, 'r', encoding='utf-8') as f:
-                    queryjson_output = json.load(f)
-                with st.expander("Similar Propositions (Step 4)", expanded=False):
-                    st.json(queryjson_output)
-            
-            # Step 5: Select best citations
-            st.write("Step 5: Selecting best citations...")
-            
-            citation_script = os.path.join(current_dir, "citation.py")
-            citation_cmd = f"python \"{citation_script}\" --input \"{queryjson_output_path}\" --output \"{citations_path}\""
-            
-            process = subprocess.Popen(
-                citation_cmd, 
-                shell=True,
-                env=env,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
-            
-            while process.poll() is None:
-                progress_bar.progress(0.9)  # Indicate process is running
-                time.sleep(1)
-            
-            returncode = process.wait()
-            stdout, stderr = process.communicate()
-            
-            if returncode != 0:
-                st.error("Citation selection failed")
-                st.error(f"Error: {stderr}")
-                return None
-            
-            progress_bar.progress(1.0)
-            
-            # Read the QueryJson output and citations CSV
-            with open(queryjson_output_path, 'r', encoding='utf-8') as f:
-                queryjson_output = json.load(f)
-                
-            citations_df = pd.read_csv(citations_path)
-                
-            # Return both outputs
-            return {
-                "queryjson_output": queryjson_output,
-                "citations_df": citations_df
-            }
-                
-        finally:
-            # Clean up temporary files
-            for temp_file in [markdown_path, fixed_markdown_path, propositions_path, queryjson_output_path, citations_path]:
-                try:
-                    if os.path.exists(temp_file):
-                        # Instead of trying to delete immediately, give processes time to release the file
-                        # We'll try a few times with a delay between attempts
-                        for attempt in range(3):
-                            try:
-                                os.unlink(temp_file)
-                                break  # Success, exit the retry loop
-                            except Exception:
-                                # If failed, wait a moment before trying again
-                                time.sleep(1)
-                                if attempt == 2:  # Last attempt
-                                    # Just log this to stderr but don't show to user
-                                    print(f"Could not remove temporary file {temp_file}", file=sys.stderr)
-                except Exception:
-                    # Silently continue if cleanup fails - don't show errors to user
-                    pass
-
-# Process button
-# Process button styling
 # Process button
 if uploaded_file is not None:
-    # Save the uploaded file to a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix="." + uploaded_file.name.split(".")[-1]) as tmp_file:
-        tmp_file.write(uploaded_file.getvalue())
-        input_filepath = tmp_file.name
+    # Read the file content
+    file_content = uploaded_file.getvalue().decode("utf-8")
     
-    # Extract document ID from filename - first 10 characters
-    doc_id = uploaded_file.name[:10]
+    # Extract document ID from filename (first 10 characters or entire filename without extension)
+    doc_id = os.path.splitext(uploaded_file.name)[0]
+    if len(doc_id) > 10:
+        doc_id = doc_id[:10]
+    
     st.write(f"Document ID: **{doc_id}**")
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        process_button = st.button("Process Document 🌲", use_container_width=True)
+        process_button = st.button("Generate Embeddings 📊", use_container_width=True)
     
     if process_button:
-        with st.spinner("Processing document... This may take several minutes depending on document size."):
-            try:
-                results = execute_pipeline(input_filepath, doc_id)
+        with st.spinner("Processing markdown... This may take a minute or two."):
+            # Process the file
+            result = process_markdown_file(file_content, doc_id, show_intermediate)
+            
+            if result:
+                st.success("Processing complete!")
                 
-                if results:
-                    st.success("Processing complete!")
-                    
-                    # Display QueryJson output
-                    with st.expander("Query Results (Step 4)", expanded=False):
-                        st.json(results["queryjson_output"])
-                    
-                    # Display Citations output
-                    with st.expander("Citation Results (Step 5)", expanded=True):
-                        st.dataframe(results["citations_df"])
-                    
-                    # Create a function to download both files
-                    def download_all_files():
-                        # Save both files to temporary locations
-                        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as json_file, \
-                             tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as csv_file, \
-                             tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as zip_file:
-                            
-                            # Write the JSON results
-                            json_path = json_file.name
-                            with open(json_path, 'w', encoding='utf-8') as f:
-                                json.dump(results["queryjson_output"], f, indent=2)
-                            
-                            # Write the CSV results
-                            csv_path = csv_file.name
-                            results["citations_df"].to_csv(csv_path, index=False)
-                            
-                            # Create a zip file containing both files
-                            import zipfile
-                            zip_path = zip_file.name
-                            with zipfile.ZipFile(zip_path, 'w') as zipf:
-                                zipf.write(json_path, arcname="query_results.json")
-                                zipf.write(csv_path, arcname="best_citations.csv")
-                            
-                            # Read the zip file for download
-                            with open(zip_path, 'rb') as f:
-                                return f.read()
-                            
-                    # Create single download button for both files
-                    st.download_button(
-                        label="Download All Results",
-                        data=download_all_files(),
-                        file_name="document_analysis_results.zip",
-                        mime="application/zip"
-                    )
-            except Exception as e:
-                st.error(f"An error occurred during processing: {str(e)}")
-            finally:
-                # Clean up the temporary input file
-                if os.path.exists(input_filepath):
-                    os.unlink(input_filepath)
+                # Display the propositions
+                if show_intermediate:
+                    with st.expander("Extracted Propositions", expanded=True):
+                        # Create a DataFrame for easier viewing
+                        if 'propositions' in result and result['propositions']:
+                            propositions_data = []
+                            for prop in result['propositions']:
+                                propositions_data.append({
+                                    'ID': prop.get('id', ''),
+                                    'Proposition': prop.get('cleanText', ''),
+                                    'Source Text': prop.get('sourceText', '')
+                                })
+                            st.dataframe(pd.DataFrame(propositions_data))
+                        else:
+                            st.info("No propositions were extracted or the content was not relevant.")
+                
+                # Format the result as JSON for download
+                result_json = json.dumps(result, indent=2)
+                
+                # Create a download button for the result
+                st.download_button(
+                    label="Download JSON Result",
+                    data=result_json,
+                    file_name=f"{doc_id}_propositions.json",
+                    mime="application/json"
+                )
 else:
-    st.info("Please upload a document to begin processing")
+    st.info("Please upload a markdown file to begin processing")
 
 # Footer
 st.markdown("---")
 st.markdown("""
 <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0;">
     <div style="color: #666666; font-size: 0.8rem;">
-        Softwood Lumber Board Document Checker 🌲
+        Markdown Embeddings Generator 📝
     </div>
     <div style="color: #7fbc41; font-weight: bold; font-size: 0.9rem;">
-        SLB &copy; 2025
+        © 2025
     </div>
 </div>
 """, unsafe_allow_html=True)
