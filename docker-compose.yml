@@ -9,7 +9,6 @@ services:
       - "8501:8501"
     volumes:
       - .:/app
-      - ~/.cache/pip:/root/.cache/pip
     env_file:
       - .env
     restart: unless-stopped
@@ -17,3 +16,6 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - PYTHONWARNINGS=ignore
+    # Make the container start automatically in the background
+    # Remove this if you want to see the logs directly in the console
+    # detach: true
