@@ -22,6 +22,7 @@ if args.metadata is None:
 else:
     metadata_path = args.metadata
 base_name = os.path.splitext(os.path.basename(metadata_path))[0]
+base_name = base_name.replace('_markdown', '').replace('_cleaned', '').replace('_claim_matches', '').replace('_metadata', '')
 if args.claim_matches is None:
     claim_matches_path = f'output/{base_name}_claim_matches.json'
 else:
@@ -70,80 +71,84 @@ md_lines.append(f"**TL;DR:**  \n{tldr}\n")
 md_lines.append(f"**Focus Area:**  \n{focus_area_str}\n")
 md_lines.append("\n---\n")
 
-# Section: Aligned
-md_lines.append("## Aligned\n")
-if aligned_claims:
-    for idx, (claim_entry, claim, matches, supporting) in enumerate(aligned_claims, 1):
-        md_lines.append(f"\n### Claim 1.{idx}  ")
-        md_lines.append(f"*{claim}*\n")
-        # Find the aligned match in matches
-        aligned_id = supporting.get('id')
-        aligned_match = next((m for m in matches if m.get('id') == aligned_id), None)
-        if aligned_match:
-            db_prop = aligned_match.get('db_propositions', '').replace('\\u2019', "'")
-            similarity = aligned_match.get('similarity', 0)
-            match_id = aligned_match.get('id', '')
-            md_lines.append(f"**Aligned Match:**  ")
-            md_lines.append(f"- {db_prop} (Similarity: {similarity:.2f}) [ID: {match_id}]  ")
-        # Other matches
-        other_matches = [m for m in matches if m.get('id') != aligned_id]
-        if other_matches:
-            md_lines.append(f"**Other Matches:**  ")
-            for match in other_matches:
-                db_prop = match.get('db_propositions', '').replace('\\u2019', "'")
-                similarity = match.get('similarity', 0)
-                match_id = match.get('id', '')
-                md_lines.append(f"- {db_prop} (Similarity: {similarity:.2f}) [ID: {match_id}]  ")
-        md_lines.append("\n---\n")
+# If there are no claims at all, return a single message
+if not (aligned_claims or partially_aligned_claims or not_aligned_claims):
+    md_lines.append("## No supporting propositions from the SLB database were found.\n")
 else:
-    md_lines.append("No aligned claims found.\n---\n")
+    # Section: Aligned
+    md_lines.append("## Aligned\n")
+    if aligned_claims:
+        for idx, (claim_entry, claim, matches, supporting) in enumerate(aligned_claims, 1):
+            md_lines.append(f"\n### Claim 1.{idx}  ")
+            md_lines.append(f"*{claim}*\n")
+            # Find the aligned match in matches
+            aligned_id = supporting.get('id')
+            aligned_match = next((m for m in matches if m.get('id') == aligned_id), None)
+            if aligned_match:
+                db_prop = aligned_match.get('db_propositions', '').replace('\\u2019', "'")
+                similarity = aligned_match.get('similarity', 0)
+                match_id = aligned_match.get('id', '')
+                md_lines.append(f"**Aligned Match:**  ")
+                md_lines.append(f"- {db_prop} (Similarity: {similarity:.2f}) [ID: {match_id}]  ")
+            # Other matches
+            other_matches = [m for m in matches if m.get('id') != aligned_id]
+            if other_matches:
+                md_lines.append(f"**Other Matches:**  ")
+                for match in other_matches:
+                    db_prop = match.get('db_propositions', '').replace('\\u2019', "'")
+                    similarity = match.get('similarity', 0)
+                    match_id = match.get('id', '')
+                    md_lines.append(f"- {db_prop} (Similarity: {similarity:.2f}) [ID: {match_id}]  ")
+            md_lines.append("\n---\n")
+    else:
+        md_lines.append("No aligned claims found.\n---\n")
 
-# Section: Partially aligned
-md_lines.append("## Partially aligned\n")
-if partially_aligned_claims:
-    for idx, (claim_entry, claim, matches, supporting) in enumerate(partially_aligned_claims, 1):
-        md_lines.append(f"\n### Claim 2.{idx}  ")
-        md_lines.append(f"*{claim}*\n")
-        # Find the partially aligned match in matches
-        aligned_id = supporting.get('id')
-        aligned_match = next((m for m in matches if m.get('id') == aligned_id), None)
-        if aligned_match:
-            db_prop = aligned_match.get('db_propositions', '').replace('\\u2019', "'")
-            similarity = aligned_match.get('similarity', 0)
-            match_id = aligned_match.get('id', '')
-            md_lines.append(f"**Partially Aligned Match:**  ")
-            md_lines.append(f"- {db_prop} (Similarity: {similarity:.2f}) [ID: {match_id}]  ")
-        # Other matches
-        other_matches = [m for m in matches if m.get('id') != aligned_id]
-        if other_matches:
-            md_lines.append(f"**Other Matches:**  ")
-            for match in other_matches:
-                db_prop = match.get('db_propositions', '').replace('\\u2019', "'")
-                similarity = match.get('similarity', 0)
-                match_id = match.get('id', '')
+    # Section: Partially aligned
+    md_lines.append("## Partially aligned\n")
+    if partially_aligned_claims:
+        for idx, (claim_entry, claim, matches, supporting) in enumerate(partially_aligned_claims, 1):
+            md_lines.append(f"\n### Claim 2.{idx}  ")
+            md_lines.append(f"*{claim}*\n")
+            # Find the partially aligned match in matches
+            aligned_id = supporting.get('id')
+            aligned_match = next((m for m in matches if m.get('id') == aligned_id), None)
+            if aligned_match:
+                db_prop = aligned_match.get('db_propositions', '').replace('\\u2019', "'")
+                similarity = aligned_match.get('similarity', 0)
+                match_id = aligned_match.get('id', '')
+                md_lines.append(f"**Partially Aligned Match:**  ")
                 md_lines.append(f"- {db_prop} (Similarity: {similarity:.2f}) [ID: {match_id}]  ")
-        md_lines.append("\n---\n")
-else:
-    md_lines.append("No partially aligned claims found.\n---\n")
+            # Other matches
+            other_matches = [m for m in matches if m.get('id') != aligned_id]
+            if other_matches:
+                md_lines.append(f"**Other Matches:**  ")
+                for match in other_matches:
+                    db_prop = match.get('db_propositions', '').replace('\\u2019', "'")
+                    similarity = match.get('similarity', 0)
+                    match_id = match.get('id', '')
+                    md_lines.append(f"- {db_prop} (Similarity: {similarity:.2f}) [ID: {match_id}]  ")
+            md_lines.append("\n---\n")
+    else:
+        md_lines.append("No partially aligned claims found.\n---\n")
 
-# Section: Not aligned
-md_lines.append("## Not aligned\n")
-if not_aligned_claims:
-    for idx, (claim_entry, claim, matches, supporting) in enumerate(not_aligned_claims, 1):
-        md_lines.append(f"\n### Claim 3.{idx}  ")
-        md_lines.append(f"*{claim}*\n")
-        md_lines.append(f"**Matches:**  ")
-        if matches:
-            for match in matches:
-                db_prop = match.get('db_propositions', '').replace('\\u2019', "'")
-                similarity = match.get('similarity', 0)
-                match_id = match.get('id', '')
-                md_lines.append(f"- {db_prop} (Similarity: {similarity:.2f}) [ID: {match_id}]  ")
-        else:
-            md_lines.append("- None found  ")
-        md_lines.append("\n---\n")
-else:
-    md_lines.append("All claims are aligned or partially aligned.\n---\n")
+    # Section: Not aligned
+    md_lines.append("## Not aligned\n")
+    if not_aligned_claims:
+        for idx, (claim_entry, claim, matches, supporting) in enumerate(not_aligned_claims, 1):
+            md_lines.append(f"\n### Claim 3.{idx}  ")
+            md_lines.append(f"*{claim}*\n")
+            md_lines.append(f"**Matches:**  ")
+            if matches:
+                for match in matches:
+                    db_prop = match.get('db_propositions', '').replace('\\u2019', "'")
+                    similarity = match.get('similarity', 0)
+                    match_id = match.get('id', '')
+                    md_lines.append(f"- {db_prop} (Similarity: {similarity:.2f}) [ID: {match_id}]  ")
+            else:
+                md_lines.append("- None found  ")
+            md_lines.append("\n---\n")
+    else:
+        md_lines.append("All claims are aligned or partially aligned.\n---\n")
 
 # Write to markdown file
 with open(output_md_path, 'w', encoding='utf-8') as f:

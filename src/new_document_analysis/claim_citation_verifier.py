@@ -57,6 +57,15 @@ def main():
     parser.add_argument('-o', '--output', type=str, default=None, help='Output claim matches JSON file (default: overwrite input)')
     args = parser.parse_args()
 
+    # Standardize base name
+    base_name = os.path.splitext(os.path.basename(args.input))[0]
+    base_name = base_name.replace('_markdown', '').replace('_cleaned', '').replace('_claim_matches', '')
+    if args.output is None:
+        output_path = f'output/{base_name}_claim_matches.json'
+    else:
+        output_path = args.output
+    print(f"BASENAME:{base_name}", file=sys.stderr)
+
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
         print("Error: Please set the OPENAI_API_KEY environment variable.", file=sys.stderr)
@@ -94,7 +103,6 @@ def main():
             print("  !! No supporting proposition found for this claim.\n")
             no_support += 1
         entry["supporting_proposition"] = supporting
-    output_path = args.output if args.output else args.input
     save_claim_matches(output_path, claim_matches)
     print("\n===== Claim Citation Verification Complete =====\n")
     print(f"Claims with supporting proposition: {updated}")
