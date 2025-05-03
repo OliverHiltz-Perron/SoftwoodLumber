@@ -126,7 +126,8 @@ def main():
             claims_path = 'output/extracted_claims.json'
     else:
         claims_path = args.claims
-    base_name = os.path.splitext(os.path.basename(claims_path))[0].replace('_claims','')
+    base_name = os.path.splitext(os.path.basename(claims_path))[0]
+    base_name = base_name.replace('_markdown', '').replace('_cleaned', '').replace('_claims', '')
     if args.output is None:
         output_json = f'output/{base_name}_claim_matches.json'
     else:

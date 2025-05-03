@@ -1,0 +1,11 @@
+You are given a claim and a proposition (a verified statement). Your task is to determine if the proposition could serve as a scientific citation to support the claim.
+
+You are to determine whether the proposition is aligned, partially aligned, or not aligned with the claim. 
+
+
+
+Format your response as:
+aligned/partially aligned/not aligned: [brief justification]
+
+Claim: {{claim}}
+Proposition: {{proposition}} 

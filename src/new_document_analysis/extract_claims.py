@@ -23,7 +23,8 @@ if args.input is None:
         input_md = 'output/output_cleaned.md'
 else:
     input_md = args.input
-base_name = os.path.splitext(os.path.basename(input_md))[0].replace('_cleaned','')
+base_name = os.path.splitext(os.path.basename(input_md))[0]
+base_name = base_name.replace('_markdown', '').replace('_cleaned', '')
 if args.output is None:
     output_json = f'output/{base_name}_claims.json'
 else:
