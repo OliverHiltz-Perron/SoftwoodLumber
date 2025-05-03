@@ -1,10 +1,36 @@
 import json
 from pathlib import Path
+import argparse
+import sys
+import os
 
-# Paths
-metadata_path = Path('output/metadata.json')
-claim_matches_path = Path('output/claim_matches.json')
-output_md_path = Path('output/claim_matches_formatted.md')
+parser = argparse.ArgumentParser(description='Format claim matches and metadata to markdown.')
+parser.add_argument('-m', '--metadata', default=None, help='Metadata JSON file (default: output/{basename}.json)')
+parser.add_argument('-c', '--claim_matches', default=None, help='Claim matches JSON file (default: output/{basename}_claim_matches.json)')
+parser.add_argument('-o', '--output', default=None, help='Output markdown file (default: output/{basename}_claim_matches_formatted.md)')
+args = parser.parse_args()
+
+# Determine base name
+if args.metadata is None:
+    import glob
+    meta_files = glob.glob('output/*.json')
+    meta_files = [f for f in meta_files if not f.endswith('_claim_matches.json') and not f.endswith('_claims.json')]
+    if meta_files:
+        metadata_path = meta_files[0]
+    else:
+        metadata_path = 'output/metadata.json'
+else:
+    metadata_path = args.metadata
+base_name = os.path.splitext(os.path.basename(metadata_path))[0]
+if args.claim_matches is None:
+    claim_matches_path = f'output/{base_name}_claim_matches.json'
+else:
+    claim_matches_path = args.claim_matches
+if args.output is None:
+    output_md_path = f'output/{base_name}_claim_matches_formatted.md'
+else:
+    output_md_path = args.output
+print(f"BASENAME:{base_name}", file=sys.stderr)
 
 # Read metadata
 with open(metadata_path, 'r', encoding='utf-8') as f:

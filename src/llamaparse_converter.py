@@ -70,14 +70,22 @@ def main():
     cli_parser = argparse.ArgumentParser(description="Convert a document to Markdown using LlamaParse.")
     cli_parser.add_argument("-i", "--input", default="-", 
                          help="Path to the input file. Use '-' for stdin (default).")
-    cli_parser.add_argument("-o", "--output", default="output/output_cleaned.md", 
-                         help="Path to output file. Use '-' for stdout (default: output/output_cleaned.md).")
+    cli_parser.add_argument("-o", "--output", default=None, 
+                         help="Path to output file. If not specified, will use output/{basename}_cleaned.md.")
     args = cli_parser.parse_args()
 
     input_path = args.input
+    # Determine base name for output
+    if input_path == '-' or not os.path.isfile(input_path):
+        base_name = 'input'
+    else:
+        base_name = os.path.splitext(os.path.basename(input_path))[0]
     output_path = args.output
+    if not output_path:
+        output_path = f"output/{base_name}_markdown.md"
 
     print(f"Script started. Input: {input_path}, Output: {output_path}", file=sys.stderr)
+    print(f"BASENAME:{base_name}", file=sys.stderr)
 
     # --- API Key Loading ---
     load_dotenv()

@@ -105,11 +105,20 @@ def main():
     parser = argparse.ArgumentParser(description="Clean up Markdown formatting issues using OpenAI gpt-4.1-mini.")
     parser.add_argument("-i", "--input", default="-", 
                       help="Input Markdown file path. Use '-' for stdin (default)")
-    parser.add_argument("-o", "--output", default="output/cleaned.md", 
-                      help="Output file path. Use '-' for stdout (default: output/cleaned.md)")
+    parser.add_argument("-o", "--output", default=None, 
+                      help="Output file path. If not specified, will use output/{basename}_cleaned.md")
     parser.add_argument("--prompt", default="src/prompts/markdown_prompt.txt", 
                       help="Path to the prompt template file (default: src/prompts/markdown_prompt.txt)")
     args = parser.parse_args()
+    # Determine base name for output
+    if args.input == '-' or not os.path.isfile(args.input):
+        base_name = 'input'
+    else:
+        base_name = os.path.splitext(os.path.basename(args.input))[0].replace('_cleaned','')
+    output_path = args.output
+    if not output_path:
+        output_path = f"output/{base_name}_cleaned.md"
+    print(f"BASENAME:{base_name}", file=sys.stderr)
     fixer = MarkdownFixer(api_key)
     print(f"Reading prompt template from: {args.prompt}", file=sys.stderr)
     prompt_template = fixer.read_prompt_template(args.prompt)
@@ -128,10 +137,10 @@ def main():
     if not cleaned_markdown:
         print("Processing failed. No output generated.", file=sys.stderr)
         return 1
-    if args.output == '-':
+    if output_path == '-':
         sys.stdout.write(cleaned_markdown)
     else:
-        success = fixer.write_file(args.output, cleaned_markdown)
+        success = fixer.write_file(output_path, cleaned_markdown)
         if not success:
             return 1
     print("Processing complete.", file=sys.stderr)
