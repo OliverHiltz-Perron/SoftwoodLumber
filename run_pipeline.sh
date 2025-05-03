@@ -25,3 +25,9 @@ for INPUT_PDF in input/*.pdf; do
   # 6. Generate formatted markdown from claim matches and metadata
   python src/new_document_analysis/claim_matches_to_markdown.py -m "output/${BASENAME}_metadata.json" -c "output/${BASENAME}_claim_matches.json" -o "output/${BASENAME}_claim_matches_formatted.md"
 done
+
+# Convert all markdown files in the output directory to DOCX using pandoc
+for MD_FILE in output/*.md; do
+  DOCX_FILE="${MD_FILE%.md}.docx"
+  pandoc "$MD_FILE" -o "$DOCX_FILE"
+done
