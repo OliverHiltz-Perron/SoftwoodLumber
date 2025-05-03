@@ -31,4 +31,17 @@ claims_json = response.choices[0].message.content.strip()
 with open('extracted_claims.json', 'w') as f:
     f.write(claims_json)
 
-print("Extraction complete. Results written to extracted_claims.json.") 
+print("Extraction complete. Results written to extracted_claims.json.")
+
+def clean_json_markdown_wrapping(text):
+    lines = text.strip().splitlines()
+    if lines and lines[0].strip().startswith("```"):
+        lines = lines[1:]
+    if lines and lines[-1].strip() == "```":
+        lines = lines[:-1]
+    return "\n".join(lines)
+
+with open('extracted_claims.json', 'r', encoding='utf-8') as f:
+    raw = f.read()
+    raw = clean_json_markdown_wrapping(raw)
+    claims = json.loads(raw) 
