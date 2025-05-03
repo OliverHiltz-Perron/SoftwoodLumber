@@ -29,13 +29,6 @@ response = client.chat.completions.create(
 # Parse the response (should be a JSON array)
 claims_json = response.choices[0].message.content.strip()
 
-# Write to output file
-os.makedirs('output', exist_ok=True)
-with open('output/extracted_claims.json', 'w') as f:
-    f.write(claims_json)
-
-print("Extraction complete. Results written to output/extracted_claims.json.")
-
 def clean_json_markdown_wrapping(text):
     lines = text.strip().splitlines()
     if lines and lines[0].strip().startswith("```"):
@@ -44,19 +37,16 @@ def clean_json_markdown_wrapping(text):
         lines = lines[:-1]
     return "\n".join(lines)
 
-with open('output/extracted_claims.json', 'r', encoding='utf-8') as f:
-    raw = f.read()
-    raw = clean_json_markdown_wrapping(raw)
-    claims = json.loads(raw)
+raw = clean_json_markdown_wrapping(claims_json)
+claims = json.loads(raw)
 
 parser = argparse.ArgumentParser(description="Extract claims from markdown using OpenAI.")
 parser.add_argument('-o', '--output', default='output/extracted_claims.json', help='Output file path (default: output/extracted_claims.json)')
 args = parser.parse_args()
 
 # Write to output file
-os.makedirs('output', exist_ok=True)
 with open(args.output, 'w') as f:
-    f.write(claims_json)
+    f.write(raw)
 
 print(f"Extraction complete. Results written to {args.output}.")
 
