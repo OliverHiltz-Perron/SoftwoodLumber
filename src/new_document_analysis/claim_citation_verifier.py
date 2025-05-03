@@ -118,7 +118,8 @@ def main():
                     "rank": r["rank"],
                     "evidence_strength": r["evidence_strength"],
                     "id": match.get("id"),
-                    "similarity": match.get("similarity")
+                    "similarity": match.get("similarity"),
+                    "file_name": match.get("file_name", "")
                 })
             else:
                 ranked_with_ids.append(r)

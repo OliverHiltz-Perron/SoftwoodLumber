@@ -96,6 +96,9 @@ def load_database_embeddings(csv_path):
                     prop_dict['db_proposition'] = row[text_columns[0]]
                 else:
                     prop_dict['db_proposition'] = f"Row {i}"
+            # Add file_name if present
+            if 'file_name' in row:
+                prop_dict['file_name'] = row['file_name']
             db_propositions.append(prop_dict)
         return db_embeddings, db_propositions
     except Exception as e:
@@ -186,6 +189,13 @@ def main():
             threshold=args.threshold,
             top_k=args.top_k
         )
+        # Add file_name to each match if present in db_propositions
+        for match in matches:
+            match_id = match.get('id')
+            for db_prop in db_propositions:
+                if db_prop.get('id') == match_id:
+                    match['file_name'] = db_prop.get('file_name', '')
+                    break
         results.append({
             'claim': text,
             'matches': matches

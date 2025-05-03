@@ -87,4 +87,20 @@ for idx, claim_entry in enumerate(claim_matches, 1):
 with open(output_md_path, 'w', encoding='utf-8') as f:
     f.write('\n'.join(md_lines))
 
+# Add references section
+references_lines = []
+references_lines.append("\n## References\n")
+for idx, claim_entry in enumerate(claim_matches, 1):
+    ranked_props = claim_entry.get('ranked_propositions', [])
+    if ranked_props:
+        references_lines.append(f"\n**Claim {idx}:**")
+        for prop in sorted(ranked_props, key=lambda x: x.get('rank', 9999)):
+            match_id = prop.get('id', '')
+            file_name = prop.get('file_name', '')
+            if match_id or file_name:
+                references_lines.append(f"- ID: {match_id}, File: {file_name}")
+if references_lines:
+    with open(output_md_path, 'a', encoding='utf-8') as f:
+        f.write('\n'.join(references_lines))
+
 print(f"Markdown file generated at {output_md_path}") 
