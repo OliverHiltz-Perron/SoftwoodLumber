@@ -242,15 +242,14 @@ def main():
         return
     
     # Process each markdown file
-    for markdown_file in markdown_files:
-        # Create the output file name
-        output_file = os.path.join('output', os.path.splitext(os.path.basename(markdown_file))[0] + '.json')
-
-        # Process the file
+    for idx, markdown_file in enumerate(markdown_files):
+        # Always write to output/metadata.json
+        output_file = os.path.join('output', 'metadata.json')
         print(f"\n{'='*50}\nProcessing: {markdown_file}\n{'='*50}")
         extractor.process_markdown_file(markdown_file, output_file, prompt)
-    
-    print("\nProcessing complete! Check the 'output' directory for the JSON files.")
+        # If you only want the first file, uncomment the next line:
+        # break
+    print("\nProcessing complete! Check the 'output/metadata.json' file.")
 
 
 if __name__ == "__main__":
