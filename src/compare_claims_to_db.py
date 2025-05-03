@@ -105,9 +105,9 @@ def load_database_embeddings(csv_path):
 # --- Main script logic ---
 def main():
     parser = argparse.ArgumentParser(description='Compare extracted claims to proposition database using embeddings')
-    parser.add_argument('-c', '--claims', type=str, default='../extracted_claims.json', help='Path to extracted_claims.json')
+    parser.add_argument('-c', '--claims', type=str, default=None, help='Path to extracted_claims.json (default: output/{basename}_claims.json)')
     parser.add_argument('-d', '--database', type=str, default='propositions_rows.csv', help='Path to propositions_rows.csv')
-    parser.add_argument('-o', '--output', type=str, default='output/claim_matches.json', help='Output JSON file for matches (default: output/claim_matches.json)')
+    parser.add_argument('-o', '--output', type=str, default=None, help='Output JSON file for matches (default: output/{basename}_claim_matches.json)')
     parser.add_argument('--prefix', type=str, default="search_document:", help='Prefix for embeddings (default: search_document:)')
     parser.add_argument('--threshold', type=float, default=0.6, help='Similarity threshold (default: 0.6)')
     parser.add_argument('--top_k', type=int, default=3, help='Number of top matches to return (default: 3)')
@@ -115,6 +115,23 @@ def main():
     parser.add_argument('--use_gpu', action='store_true', help='Use GPU if available')
     parser.add_argument('--no_gpu', action='store_true', help='Disable GPU usage even if available')
     args = parser.parse_args()
+
+    # Determine base name
+    if args.claims is None:
+        import glob
+        claim_files = glob.glob('output/*_claims.json')
+        if claim_files:
+            claims_path = claim_files[0]
+        else:
+            claims_path = 'output/extracted_claims.json'
+    else:
+        claims_path = args.claims
+    base_name = os.path.splitext(os.path.basename(claims_path))[0].replace('_claims','')
+    if args.output is None:
+        output_json = f'output/{base_name}_claim_matches.json'
+    else:
+        output_json = args.output
+    print(f"BASENAME:{base_name}", file=sys.stderr)
 
     use_gpu = None
     if args.use_gpu:
@@ -132,7 +149,7 @@ def main():
     model.eval()
 
     # Load claims
-    with open(args.claims, 'r', encoding='utf-8') as f:
+    with open(claims_path, 'r', encoding='utf-8') as f:
         # Remove accidental markdown code block if present
         first_line = f.readline()
         if first_line.strip().startswith('['):
@@ -174,9 +191,9 @@ def main():
         })
 
     # Write output
-    with open(args.output, 'w', encoding='utf-8') as f:
+    with open(output_json, 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=2)
-    print(f"Wrote results to {args.output}", file=sys.stderr)
+    print(f"Wrote results to {output_json}", file=sys.stderr)
 
 if __name__ == "__main__":
     main() 

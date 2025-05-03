@@ -3,6 +3,8 @@ import json
 import re
 import openai
 from dotenv import load_dotenv
+import argparse
+import sys
 
 # Load environment variables from .env file
 load_dotenv()
@@ -222,34 +224,37 @@ def main():
     if not api_key:
         print("Error: Please set the OPENAI_API_KEY environment variable.")
         return
-    
+    parser = argparse.ArgumentParser(description="Extract metadata from cleaned markdown.")
+    parser.add_argument('-i', '--input', default=None, help='Input cleaned markdown file (default: output/{basename}_cleaned.md)')
+    parser.add_argument('-o', '--output', default=None, help='Output JSON file (default: output/{basename}_metadata.json)')
+    args = parser.parse_args()
+    # Determine base name
+    if args.input is None:
+        import glob
+        md_files = glob.glob('output/*_cleaned.md')
+        if md_files:
+            input_md = md_files[0]
+        else:
+            input_md = 'output/output_cleaned.md'
+    else:
+        input_md = args.input
+    base_name = os.path.splitext(os.path.basename(input_md))[0].replace('_cleaned','')
+    if args.output is None:
+        output_json = f'output/{base_name}_metadata.json'
+    else:
+        output_json = args.output
+    print(f"BASENAME:{base_name}", file=sys.stderr)
     # Define the prompt for OpenAI
     with open("src/prompts/markdown_to_json.txt", "r", encoding="utf-8") as f:
         prompt = f.read()
     # Create processor with the API key
     extractor = MetadataExtractor(api_key)
-    
     # Create output directory if it doesn't exist
     os.makedirs('output', exist_ok=True)
-    
-    # Always use markdown files from the output directory
-    output_dir = 'output'
-    print("Using markdown files from the output directory.")
-    markdown_files = [os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith('.md') and f.lower() != 'readme.md']
-    
-    if not markdown_files:
-        print("No markdown (.md) files found in the output directory.")
-        return
-    
-    # Process each markdown file
-    for idx, markdown_file in enumerate(markdown_files):
-        # Always write to output/metadata.json
-        output_file = os.path.join('output', 'metadata.json')
-        print(f"\n{'='*50}\nProcessing: {markdown_file}\n{'='*50}")
-        extractor.process_markdown_file(markdown_file, output_file, prompt)
-        # If you only want the first file, uncomment the next line:
-        # break
-    print("\nProcessing complete! Check the 'output/metadata.json' file.")
+    # Process the markdown file
+    print(f"\n{'='*50}\nProcessing: {input_md}\n{'='*50}")
+    extractor.process_markdown_file(input_md, output_json, prompt)
+    print(f"\nProcessing complete! Check '{output_json}' for the JSON file.")
 
 
 if __name__ == "__main__":

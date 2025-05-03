@@ -3,15 +3,39 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import argparse
 import os
+import sys
 
 load_dotenv()
+
+parser = argparse.ArgumentParser(description="Extract claims from markdown using OpenAI.")
+parser.add_argument('-i', '--input', default=None, help='Input cleaned markdown file (default: output/{basename}_cleaned.md)')
+parser.add_argument('-o', '--output', default=None, help='Output file path (default: output/{basename}_claims.json)')
+args = parser.parse_args()
+
+# Determine base name
+if args.input is None:
+    # Try to find a cleaned markdown file in output/
+    import glob
+    md_files = glob.glob('output/*_cleaned.md')
+    if md_files:
+        input_md = md_files[0]
+    else:
+        input_md = 'output/output_cleaned.md'
+else:
+    input_md = args.input
+base_name = os.path.splitext(os.path.basename(input_md))[0].replace('_cleaned','')
+if args.output is None:
+    output_json = f'output/{base_name}_claims.json'
+else:
+    output_json = args.output
+print(f"BASENAME:{base_name}", file=sys.stderr)
 
 # Read the extraction prompt
 with open('src/prompts/extract_claims_prompt.txt', 'r') as f:
     prompt_template = f.read()
 
 # Read the cleaned markdown content
-with open('output/output_cleaned.md', 'r') as f:
+with open(input_md, 'r') as f:
     markdown_content = f.read()
 
 # Insert the markdown content into the prompt
@@ -40,17 +64,13 @@ def clean_json_markdown_wrapping(text):
 raw = clean_json_markdown_wrapping(claims_json)
 claims = json.loads(raw)
 
-parser = argparse.ArgumentParser(description="Extract claims from markdown using OpenAI.")
-parser.add_argument('-o', '--output', default='output/extracted_claims.json', help='Output file path (default: output/extracted_claims.json)')
-args = parser.parse_args()
-
 # Write to output file
-with open(args.output, 'w') as f:
+with open(output_json, 'w') as f:
     f.write(raw)
 
-print(f"Extraction complete. Results written to {args.output}.")
+print(f"Extraction complete. Results written to {output_json}.")
 
-with open(args.output, 'r', encoding='utf-8') as f:
+with open(output_json, 'r', encoding='utf-8') as f:
     raw = f.read()
     raw = clean_json_markdown_wrapping(raw)
     claims = json.loads(raw) 
