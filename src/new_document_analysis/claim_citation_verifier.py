@@ -51,8 +51,32 @@ def check_proposition_supports_claim(client, prompt_template, claim, proposition
         return True, (classification, justification)
     return False, (classification, justification)
 
+def rank_and_annotate_propositions(client, prompt_template, claim, propositions):
+    # Format the propositions as a numbered list for the prompt
+    prop_list = "\n".join([f"{i+1}. {p}" for i, p in enumerate(propositions)])
+    prompt = prompt_template.replace("{{claim}}", claim).replace("{{propositions}}", prop_list)
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=TEMPERATURE,
+        max_tokens=2048,
+    )
+    answer = response.choices[0].message.content.strip()
+    # Try to extract JSON from the response
+    try:
+        ranked = json.loads(answer)
+    except Exception:
+        # Fallback: try to extract JSON substring
+        match = re.search(r'(\[.*\])', answer, re.DOTALL)
+        if match:
+            ranked = json.loads(match.group(1))
+        else:
+            print(f"Could not parse LLM output as JSON for claim: {claim}", file=sys.stderr)
+            ranked = []
+    return ranked
+
 def main():
-    parser = argparse.ArgumentParser(description='Verify claim citations using LLM.')
+    parser = argparse.ArgumentParser(description='Rank and annotate claim citations using LLM.')
     parser.add_argument('-i', '--input', type=str, default="output/WoodAsBuildingMaterial_claim_matches.json", help='Input claim matches JSON file')
     parser.add_argument('-o', '--output', type=str, default=None, help='Output claim matches JSON file (default: overwrite input)')
     args = parser.parse_args()
@@ -73,40 +97,37 @@ def main():
     client = openai.OpenAI(api_key=api_key)
     prompt_template = load_prompt_template(PROMPT_PATH)
     claim_matches = load_claim_matches(args.input)
-    updated = 0
-    no_support = 0
-    print("\n===== Starting Claim Citation Verification =====\n")
+    print("\n===== Starting Claim Proposition Ranking =====\n")
     for idx, entry in enumerate(claim_matches):
         claim = entry.get("claim", "")
         matches = entry.get("matches", [])
+        propositions = [m.get("db_propositions", "") for m in matches]
         print(f"\n--- Claim {idx+1}/{len(claim_matches)} ---\n{claim}\n{'-'*40}")
-        supporting = None
-        for m_idx, match in enumerate(matches):
-            prop_text = match.get("db_propositions", "")
-            print(f"  Checking proposition {m_idx+1}/{len(matches)}:")
-            print(f"    {prop_text}")
-            is_support, answer = check_proposition_supports_claim(client, prompt_template, claim, prop_text)
-            print(f"    LLM answer: {answer}")
-            if is_support:
-                supporting = {
+        if not propositions:
+            entry["ranked_propositions"] = []
+            continue
+        ranked = rank_and_annotate_propositions(client, prompt_template, claim, propositions)
+        # Attach the original match metadata to the ranked output
+        ranked_with_ids = []
+        for r in ranked:
+            # Find the original match for this proposition
+            match = next((m for m in matches if m.get("db_propositions", "") == r["proposition"]), None)
+            if match:
+                ranked_with_ids.append({
+                    "proposition": r["proposition"],
+                    "rank": r["rank"],
+                    "evidence_strength": r["evidence_strength"],
                     "id": match.get("id"),
-                    "db_propositions": prop_text,
-                    "llm_classification": answer[0],
-                    "llm_justification": answer[1]
-                }
-                print("    -> This proposition WILL be used as a citation.\n")
-                updated += 1
-                break
+                    "similarity": match.get("similarity")
+                })
             else:
-                print("    -> Not sufficient as a citation.")
-        if not supporting:
-            print("  !! No supporting proposition found for this claim.\n")
-            no_support += 1
-        entry["supporting_proposition"] = supporting
+                ranked_with_ids.append(r)
+        entry["ranked_propositions"] = ranked_with_ids
+        # Remove old supporting_proposition if present
+        if "supporting_proposition" in entry:
+            del entry["supporting_proposition"]
     save_claim_matches(output_path, claim_matches)
-    print("\n===== Claim Citation Verification Complete =====\n")
-    print(f"Claims with supporting proposition: {updated}")
-    print(f"Claims without supporting proposition: {no_support}")
+    print("\n===== Claim Proposition Ranking Complete =====\n")
     print(f"Total claims processed: {len(claim_matches)}\n")
     print("Sample output (first 2 claims):\n" + "="*40)
     for entry in claim_matches[:2]:
