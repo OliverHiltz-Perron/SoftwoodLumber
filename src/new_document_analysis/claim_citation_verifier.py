@@ -4,12 +4,12 @@ import openai
 from dotenv import load_dotenv
 import sys
 import re
+import argparse
 
 # Load environment variables
 load_dotenv()
 
 PROMPT_PATH = "src/prompts/claim_proposition_citation_check.txt"
-INPUT_JSON = "output/WoodAsBuildingMaterial_claim_matches.json"
 
 MODEL = "gpt-4.1-mini"
 TEMPERATURE = 0.1
@@ -52,13 +52,18 @@ def check_proposition_supports_claim(client, prompt_template, claim, proposition
     return False, (classification, justification)
 
 def main():
+    parser = argparse.ArgumentParser(description='Verify claim citations using LLM.')
+    parser.add_argument('-i', '--input', type=str, default="output/WoodAsBuildingMaterial_claim_matches.json", help='Input claim matches JSON file')
+    parser.add_argument('-o', '--output', type=str, default=None, help='Output claim matches JSON file (default: overwrite input)')
+    args = parser.parse_args()
+
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
         print("Error: Please set the OPENAI_API_KEY environment variable.", file=sys.stderr)
         return 1
     client = openai.OpenAI(api_key=api_key)
     prompt_template = load_prompt_template(PROMPT_PATH)
-    claim_matches = load_claim_matches(INPUT_JSON)
+    claim_matches = load_claim_matches(args.input)
     updated = 0
     no_support = 0
     print("\n===== Starting Claim Citation Verification =====\n")
@@ -89,7 +94,8 @@ def main():
             print("  !! No supporting proposition found for this claim.\n")
             no_support += 1
         entry["supporting_proposition"] = supporting
-    save_claim_matches(INPUT_JSON, claim_matches)
+    output_path = args.output if args.output else args.input
+    save_claim_matches(output_path, claim_matches)
     print("\n===== Claim Citation Verification Complete =====\n")
     print(f"Claims with supporting proposition: {updated}")
     print(f"Claims without supporting proposition: {no_support}")
