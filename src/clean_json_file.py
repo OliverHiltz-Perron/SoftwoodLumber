@@ -20,7 +20,10 @@ def clean_json_markdown_wrapping(input_path, output_path=None):
         # Still write the cleaned content for inspection
     # Write to output
     if output_path is None:
-        output_path = input_path
+        base = os.path.basename(input_path)
+        name, _ = os.path.splitext(base)
+        output_path = os.path.join('output', f'{name}_cleaned.json')
+        os.makedirs('output', exist_ok=True)
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(cleaned_content)
     print(f"Cleaned JSON written to {output_path}")

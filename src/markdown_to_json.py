@@ -214,9 +214,9 @@ def main():
     if not api_key:
         print("Error: Please set the GEMINI_API_KEY environment variable.")
         return
-        
+    
     # Define the prompt for Gemini
-    with open("prompts/markdown_to_json.txt", "r", encoding="utf-8") as f:
+    with open("src/prompts/markdown_to_json.txt", "r", encoding="utf-8") as f:
         prompt = f.read()
     # Create processor with the API key
     processor = MarkdownProcessor(api_key)
@@ -224,20 +224,13 @@ def main():
     # Create output directory if it doesn't exist
     os.makedirs('output', exist_ok=True)
     
-    # Check if fixed_markdown folder exists in the current directory
-    fixed_markdown_dir = 'fixed_markdown'
-    if os.path.exists(fixed_markdown_dir) and os.path.isdir(fixed_markdown_dir):
-        print(f"The 'fixed_markdown' folder exists. Using markdown files from this folder.")
-        # Get all markdown files from the fixed_markdown folder, ignoring README.md
-        markdown_files = [os.path.join(fixed_markdown_dir, f) for f in os.listdir(fixed_markdown_dir) 
-                          if f.endswith('.md') and f.lower() != 'readme.md']
-    else:
-        print("No 'fixed_markdown' folder found. Using markdown files from the current directory.")
-        # Get all markdown files from the current directory, ignoring README.md
-        markdown_files = [f for f in os.listdir() if f.endswith('.md') and f.lower() != 'readme.md']
+    # Always use markdown files from the output directory
+    output_dir = 'output'
+    print("Using markdown files from the output directory.")
+    markdown_files = [os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith('.md') and f.lower() != 'readme.md']
     
     if not markdown_files:
-        print("No markdown (.md) files found.")
+        print("No markdown (.md) files found in the output directory.")
         return
     
     # Process each markdown file

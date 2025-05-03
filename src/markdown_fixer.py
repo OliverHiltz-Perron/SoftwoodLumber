@@ -156,8 +156,8 @@ def main():
     parser = argparse.ArgumentParser(description="Clean up Markdown formatting issues using the Gemini API.")
     parser.add_argument("-i", "--input", default="-", 
                       help="Input Markdown file path. Use '-' for stdin (default)")
-    parser.add_argument("-o", "--output", default="-", 
-                      help="Output file path. Use '-' for stdout (default)")
+    parser.add_argument("-o", "--output", default="output/cleaned.md", 
+                      help="Output file path. Use '-' for stdout (default: output/cleaned.md)")
     parser.add_argument("--prompt", default="src/prompts/markdown_prompt.txt", 
                       help="Path to the prompt template file (default: src/prompts/markdown_prompt.txt)")
     

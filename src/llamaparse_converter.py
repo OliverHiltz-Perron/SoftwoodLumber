@@ -70,8 +70,8 @@ def main():
     cli_parser = argparse.ArgumentParser(description="Convert a document to Markdown using LlamaParse.")
     cli_parser.add_argument("-i", "--input", default="-", 
                          help="Path to the input file. Use '-' for stdin (default).")
-    cli_parser.add_argument("-o", "--output", default="-", 
-                         help="Path to output file. Use '-' for stdout (default).")
+    cli_parser.add_argument("-o", "--output", default="output/output_cleaned.md", 
+                         help="Path to output file. Use '-' for stdout (default: output/output_cleaned.md).")
     args = cli_parser.parse_args()
 
     input_path = args.input
