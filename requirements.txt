@@ -12,7 +12,7 @@ streamlit==1.28.0  # Specific version used in the app
 # AI Models - CPU versions
 openai>=1.6.1
 transformers>=4.35.2
-torch>=2.1.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.7.0
 numpy>=1.26.1
 einops>=0.6.0
 nest_asyncio

@@ -1,0 +1,49 @@
+# Wood Science Citation Extraction Prompt
+
+## Task
+Extract statements from the document that require scientific citation. Include both quantitative and qualitative claims about wood properties, the lumber industry, wood deterioration, or wood performance that rely on scientific research or testing.
+
+## Extraction Criteria
+Extract statements that:
+
+1. Present specific facts, measurements, statistics, or technical claims about wood or the lumber industry
+2. Describe scientific processes, mechanisms, or causal relationships
+3. Make comparative claims between wood species, products, or time periods
+4. Present specific performance metrics or test results
+5. Reference specific rates, timeframes, or quantifiable attributes
+6. Make assertions about wood behavior under specific conditions
+7. Claim specific relationships between wood properties and environmental factors
+8. State cause-effect relationships for wood deterioration
+9. Make claims about biological interactions (fungi, insects) with wood
+10. Assert specific industry practices or standards based on research
+11. Make claims about historical changes in wood properties or industry practices
+12. Present information about chemical or physical properties of wood
+13. State relationships between manufacturing processes and wood performance
+
+## Do Not Extract
+1. General descriptions or common knowledge about wood
+2. Purely organizational text or headings
+3. Statements that merely introduce topics without making specific claims
+4. Basic definitions without technical specificity
+
+## Format
+Extract only the direct statements themselves, preserving complete thoughts that would require citation. Multiple related sentences may be grouped together if they form a coherent claim requiring the same citation.
+
+## Examples of Statements to Extract:
+
+### Quantitative Examples:
+"The average rate of photodegradation for most wood is 1/4 inch to 1/3 inch per 100 years."
+"At just 2% weight loss from decay, wood can experience 18-24% loss in compression strength perpendicular to grain."
+
+### Qualitative Examples:
+"Wood from younger trees has lower resistance to insects and decay, poorer texture, reduced dimensional stability, lower weather resistance, and decreased strength compared to old growth timber."
+"The heartwood durability of lumber is unaffected when manufactured into glued laminated beams, but this durability relationship becomes doubtful in particleboard and likely nonexistent in wet-process hardboard or cardboard."
+"Decay fungi have four growth requirements similar to humans: food, water, air, and a satisfactory temperature, and decay will be prevented if any of these requirements is removed."
+
+Your are to return each extracted statement in a json format called with a key called sourceText.
+
+Here is the text: 
+
+---Start of text---
+{text}
+---End of text---
