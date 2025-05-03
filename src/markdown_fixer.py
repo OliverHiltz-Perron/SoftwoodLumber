@@ -45,8 +45,10 @@ class MarkdownFixer:
     def write_file(self, filepath, content):
         """Writes content to a file."""
         try:
-            # Create output directory if it doesn't exist
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            # Only create the directory if one is specified
+            output_dir = os.path.dirname(filepath)
+            if output_dir:
+                os.makedirs(output_dir, exist_ok=True)
             
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(content)
@@ -156,8 +158,8 @@ def main():
                       help="Input Markdown file path. Use '-' for stdin (default)")
     parser.add_argument("-o", "--output", default="-", 
                       help="Output file path. Use '-' for stdout (default)")
-    parser.add_argument("--prompt", default="prompts/markdown_prompt.txt", 
-                      help="Path to the prompt template file (default: prompts/markdown_prompt.txt)")
+    parser.add_argument("--prompt", default="src/prompts/markdown_prompt.txt", 
+                      help="Path to the prompt template file (default: src/prompts/markdown_prompt.txt)")
     
     args = parser.parse_args()
     
