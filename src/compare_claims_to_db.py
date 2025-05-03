@@ -107,7 +107,7 @@ def main():
     parser = argparse.ArgumentParser(description='Compare extracted claims to proposition database using embeddings')
     parser.add_argument('-c', '--claims', type=str, default='../extracted_claims.json', help='Path to extracted_claims.json')
     parser.add_argument('-d', '--database', type=str, default='propositions_rows.csv', help='Path to propositions_rows.csv')
-    parser.add_argument('-o', '--output', type=str, default='claim_matches.json', help='Output JSON file for matches')
+    parser.add_argument('-o', '--output', type=str, default='output/claim_matches.json', help='Output JSON file for matches (default: output/claim_matches.json)')
     parser.add_argument('--prefix', type=str, default="search_document:", help='Prefix for embeddings (default: search_document:)')
     parser.add_argument('--threshold', type=float, default=0.6, help='Similarity threshold (default: 0.6)')
     parser.add_argument('--top_k', type=int, default=3, help='Number of top matches to return (default: 3)')

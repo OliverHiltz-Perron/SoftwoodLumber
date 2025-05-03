@@ -1,6 +1,8 @@
 import json
 from openai import OpenAI
 from dotenv import load_dotenv
+import argparse
+import os
 
 load_dotenv()
 
@@ -9,7 +11,7 @@ with open('src/prompts/extract_claims_prompt.txt', 'r') as f:
     prompt_template = f.read()
 
 # Read the cleaned markdown content
-with open('output_cleaned.md', 'r') as f:
+with open('output/output_cleaned.md', 'r') as f:
     markdown_content = f.read()
 
 # Insert the markdown content into the prompt
@@ -27,12 +29,6 @@ response = client.chat.completions.create(
 # Parse the response (should be a JSON array)
 claims_json = response.choices[0].message.content.strip()
 
-# Write to output file
-with open('extracted_claims.json', 'w') as f:
-    f.write(claims_json)
-
-print("Extraction complete. Results written to extracted_claims.json.")
-
 def clean_json_markdown_wrapping(text):
     lines = text.strip().splitlines()
     if lines and lines[0].strip().startswith("```"):
@@ -41,7 +37,20 @@ def clean_json_markdown_wrapping(text):
         lines = lines[:-1]
     return "\n".join(lines)
 
-with open('extracted_claims.json', 'r', encoding='utf-8') as f:
+raw = clean_json_markdown_wrapping(claims_json)
+claims = json.loads(raw)
+
+parser = argparse.ArgumentParser(description="Extract claims from markdown using OpenAI.")
+parser.add_argument('-o', '--output', default='output/extracted_claims.json', help='Output file path (default: output/extracted_claims.json)')
+args = parser.parse_args()
+
+# Write to output file
+with open(args.output, 'w') as f:
+    f.write(raw)
+
+print(f"Extraction complete. Results written to {args.output}.")
+
+with open(args.output, 'r', encoding='utf-8') as f:
     raw = f.read()
     raw = clean_json_markdown_wrapping(raw)
     claims = json.loads(raw) 
