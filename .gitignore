@@ -19,3 +19,4 @@ fixed_markdown/
 *.zip
 *.log
 EmbeddedData/
+*.csv
