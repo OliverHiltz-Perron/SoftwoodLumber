@@ -1,10 +1,9 @@
 output/
 *.json
 *.md
+!README.md
 *.docx
 *.log
 *.zip
 *.pdf
 .DS_Store
-propositions_rows_old.csv
-propositions_rows.csv 
