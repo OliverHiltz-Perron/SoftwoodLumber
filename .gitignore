@@ -19,3 +19,4 @@ fixed_markdown/
 *.zip
 *.log
 EmbeddedData/
+propositions_rows_old.csv
