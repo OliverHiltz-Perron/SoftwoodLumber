@@ -117,12 +117,19 @@ def main():
                     "proposition": r["proposition"],
                     "rank": r["rank"],
                     "evidence_strength": r["evidence_strength"],
-                    "id": match.get("id"),
+                    "id": match.get("id", ""),
                     "similarity": match.get("similarity"),
                     "file_name": match.get("file_name", "")
                 })
             else:
-                ranked_with_ids.append(r)
+                ranked_with_ids.append({
+                    "proposition": r["proposition"],
+                    "rank": r.get("rank", ""),
+                    "evidence_strength": r.get("evidence_strength", ""),
+                    "id": "",
+                    "similarity": "",
+                    "file_name": ""
+                })
         entry["ranked_propositions"] = ranked_with_ids
         # Remove old supporting_proposition if present
         if "supporting_proposition" in entry:
