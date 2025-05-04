@@ -7,3 +7,4 @@ output/
 *.zip
 *.pdf
 .DS_Store
+propositions_rows_old.csv

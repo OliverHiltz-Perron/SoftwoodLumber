@@ -22,6 +22,7 @@ COPY src/ ./src/
 COPY run_pipeline.sh ./
 COPY assets/ ./assets/
 COPY input/ ./input/
+COPY propositions_rows.csv ./
 COPY README.md ./
 
 # Make the pipeline script executable
