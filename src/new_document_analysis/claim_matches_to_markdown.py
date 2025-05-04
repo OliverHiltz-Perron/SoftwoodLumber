@@ -49,92 +49,64 @@ else:
 with open(claim_matches_path, 'r', encoding='utf-8') as f:
     claim_matches = json.load(f)
 
-# Organize claims by alignment
-aligned_claims = []
-partially_aligned_claims = []
-not_aligned_claims = []
-
-for claim_entry in claim_matches:
-    claim = claim_entry.get('claim', '').strip()
-    matches = claim_entry.get('matches', [])
-    supporting = claim_entry.get('supporting_proposition', None)
-    if supporting and supporting.get('llm_classification') == 'aligned':
-        aligned_claims.append((claim_entry, claim, matches, supporting))
-    elif supporting and supporting.get('llm_classification') == 'partially aligned':
-        partially_aligned_claims.append((claim_entry, claim, matches, supporting))
-    else:
-        not_aligned_claims.append((claim_entry, claim, matches, supporting))
-
 md_lines = []
 md_lines.append(f"# {title}\n")
 md_lines.append(f"**TL;DR:**  \n{tldr}\n")
 md_lines.append(f"**Focus Area:**  \n{focus_area_str}\n")
 md_lines.append("\n---\n")
 
-# If there are no claims at all, return a single message
-if not (aligned_claims or partially_aligned_claims or not_aligned_claims):
-    md_lines.append("## No supporting propositions from the SLB database were found.\n")
-else:
-    # Section: Aligned
-    md_lines.append("## Aligned\n")
-    if aligned_claims:
-        for idx, (claim_entry, claim, matches, supporting) in enumerate(aligned_claims, 1):
-            md_lines.append(f"\n### Claim 1.{idx}  ")
-            md_lines.append(f"*{claim}*\n")
-            md_lines.append(f"**Aligned Matches:**  ")
-            aligned_id = supporting.get('id')
-            # List all matches as a single bullet list
-            for match in matches:
-                db_prop = match.get('db_propositions', '').replace('\\u2019', "'")
-                similarity = match.get('similarity', 0)
-                match_id = match.get('id', '')
-                md_lines.append(f"* {db_prop} (Similarity: {similarity:.2f}) [ID: {match_id}]")
-                md_lines.append("")  # Add a blank line to end the bullet list
-            md_lines.append("\n---\n")
-    else:
-        md_lines.append("No aligned claims found.\n")
-
-    # Section: Partially aligned
-    md_lines.append("## Partially aligned\n")
-    if partially_aligned_claims:
-        for idx, (claim_entry, claim, matches, supporting) in enumerate(partially_aligned_claims, 1):
-            md_lines.append(f"\n### Claim 2.{idx}  ")
-            md_lines.append(f"*{claim}*\n")
-            md_lines.append(f"**Partially Aligned Matches:**  ")
-            aligned_id = supporting.get('id')
-            # List all matches as a single bullet list
-            for match in matches:
-                db_prop = match.get('db_propositions', '').replace('\\u2019', "'")
-                similarity = match.get('similarity', 0)
-                match_id = match.get('id', '')
-                md_lines.append(f"* {db_prop} (Similarity: {similarity:.2f}) [ID: {match_id}]")
-                md_lines.append("")  # Add a blank line to end the bullet list
-            md_lines.append("\n---\n")
-    else:
-        md_lines.append("No partially aligned claims found.\n")
-
-    # Section: Not aligned
-    md_lines.append("## Not aligned\n")
-    if not_aligned_claims:
-        for idx, (claim_entry, claim, matches, supporting) in enumerate(not_aligned_claims, 1):
-            md_lines.append(f"\n### Claim 3.{idx}  ")
-            md_lines.append(f"*{claim}*\n")
-            md_lines.append(f"**Matches:**  ")
-            if matches:
-                for match in matches:
-                    db_prop = match.get('db_propositions', '').replace('\\u2019', "'")
-                    similarity = match.get('similarity', 0)
-                    match_id = match.get('id', '')
-                    md_lines.append(f"* {db_prop} (Similarity: {similarity:.2f}) [ID: {match_id}]")
-                    md_lines.append("")  # Add a blank line to end the bullet list
+# New report: For each claim, show ranked propositions, bolding strong evidence
+for idx, claim_entry in enumerate(claim_matches, 1):
+    claim = claim_entry.get('claim', '').strip()
+    ranked_props = claim_entry.get('ranked_propositions', [])
+    md_lines.append(f"\n### Claim {idx}\n")
+    md_lines.append(f"*{claim}*\n")
+    if ranked_props:
+        for prop in sorted(ranked_props, key=lambda x: x.get('rank', 9999)):
+            text = prop.get('proposition', '').replace('\\u2019', "'")
+            similarity = prop.get('similarity', None)
+            match_id = prop.get('id', '')
+            bullet = f"* "
+            if prop.get('evidence_strength') == 'strong':
+                bullet += f"**{text}"
             else:
-                md_lines.append("- None found  ")
-            md_lines.append("\n---\n")
+                bullet += text
+            try:
+                sim_val = float(similarity)
+                bullet += f" (Similarity: {sim_val:.2f})"
+            except (TypeError, ValueError):
+                pass
+            if match_id:
+                bullet += f" [ID: {match_id}]"
+            if prop.get('evidence_strength') == 'strong':
+                bullet += "**"
+            md_lines.append(bullet)
+            md_lines.append("")
     else:
-        md_lines.append("All claims are aligned or partially aligned.\n---\n")
+        md_lines.append("- No propositions found\n")
+    md_lines.append("\n---\n")
 
 # Write to markdown file
 with open(output_md_path, 'w', encoding='utf-8') as f:
     f.write('\n'.join(md_lines))
+
+# Add references section
+references_lines = []
+references_lines.append("\n## References\n")
+for idx, claim_entry in enumerate(claim_matches, 1):
+    ranked_props = claim_entry.get('ranked_propositions', [])
+    if ranked_props:
+        references_lines.append(f"\n*Claim {idx}:*")
+        for prop in sorted(ranked_props, key=lambda x: x.get('rank', 9999)):
+            match_id = prop.get('id', '')
+            file_name = prop.get('file_name', '')
+            if match_id or file_name:
+                if prop.get('evidence_strength') == 'strong':
+                    references_lines.append(f"- *[{match_id}] {file_name}*")
+                else:
+                    references_lines.append(f"- [{match_id}] {file_name}")
+if references_lines:
+    with open(output_md_path, 'a', encoding='utf-8') as f:
+        f.write('\n'.join(references_lines))
 
 print(f"Markdown file generated at {output_md_path}") 

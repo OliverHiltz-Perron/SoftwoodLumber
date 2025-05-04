@@ -1,11 +1,14 @@
-You are given a claim and a proposition (a verified statement). Your task is to determine if the proposition could serve as a scientific citation to support the claim.
+Given the following claim and a list of candidate propositions, rank the propositions in order of how well they support the claim. For each proposition, indicate if it is strong enough to be used as evidence (label as "strong") or not (label as "other"). Output a JSON array with objects containing: "proposition", "rank", and "evidence_strength" ("strong" or "other").
 
-You are to determine whether the proposition is aligned, partially aligned, or not aligned with the claim. 
+Claim:
+{{claim}}
 
+Candidate Propositions:
+{{propositions}}
 
-
-Format your response as:
-aligned/partially aligned/not aligned: [brief justification]
-
-Claim: {{claim}}
-Proposition: {{proposition}} 
+Output format:
+[
+  {"proposition": "...", "rank": 1, "evidence_strength": "strong"},
+  {"proposition": "...", "rank": 2, "evidence_strength": "other"},
+  ...
+] 
