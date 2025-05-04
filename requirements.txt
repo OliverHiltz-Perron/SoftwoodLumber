@@ -16,5 +16,5 @@ numpy>=1.26.1
 einops>=0.6.0
 nest_asyncio
 llama_cloud_services
-
+huggingface_hub[hf_xet]
 # Remove duplicates (streamlit, pandas, python-dotenv are already listed above)
