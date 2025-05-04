@@ -71,8 +71,11 @@ for idx, claim_entry in enumerate(claim_matches, 1):
                 bullet += f"**{text}"
             else:
                 bullet += text
-            if similarity is not None:
-                bullet += f" (Similarity: {similarity:.2f})"
+            try:
+                sim_val = float(similarity)
+                bullet += f" (Similarity: {sim_val:.2f})"
+            except (TypeError, ValueError):
+                pass
             if match_id:
                 bullet += f" [ID: {match_id}]"
             if prop.get('evidence_strength') == 'strong':
