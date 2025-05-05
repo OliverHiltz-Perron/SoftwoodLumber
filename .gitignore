@@ -21,3 +21,4 @@ fixed_markdown/
 *.csv
 
 
+.DS_Store
