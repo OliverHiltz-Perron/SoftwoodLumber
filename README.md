@@ -87,6 +87,67 @@ Material science | Building science | Construction | Forestry management | Resea
 ---
 ```
 
+## OpenAI Vector Embeddings in Supabase
+
+The application now includes functionality to create and store OpenAI vector embeddings for propositions in the Supabase database. These embeddings enable powerful semantic search capabilities, allowing for more accurate matching between document claims and database propositions.
+
+### What Are Vector Embeddings?
+
+Vector embeddings are numerical representations of text that capture semantic meaning. They convert words and phrases into high-dimensional vectors (lists of numbers) where similar meanings are positioned closer together in the vector space. This allows for:
+
+- **Semantic similarity search**: Finding propositions that are conceptually similar, not just keyword matches
+- **Clustering of related content**: Identifying groups of propositions with similar themes
+- **Cross-lingual capabilities**: Finding matches even when terminology differs
+
+### How Embeddings Are Used
+
+The OpenAI embeddings integration:
+1. Connects to the Supabase database and retrieves proposition texts
+2. Sends these texts to OpenAI's embedding API (`text-embedding-3-small` model)
+3. Stores the resulting 1536-dimensional vectors in the `Embeddings_OpenAI` column of the `Embedded_propositions` table
+4. Enables vector similarity search using pgvector's cosine similarity function
+
+### Running the Embedding Script
+
+To generate embeddings for all propositions in the database:
+
+```bash
+cd src/supabase-kb
+python embeddings_openai.py
+```
+
+The script will:
+- Only process propositions that don't already have embeddings (NULL values)
+- Process in batches to respect API rate limits
+- Handle Unicode and special characters
+- Apply multiple storage methods to ensure compatibility with pgvector
+- Save a CSV backup of all embeddings to the `output/` directory
+
+### Prerequisites for Embeddings
+
+- Supabase project with the pgvector extension enabled
+- Table with a column of type `vector(1536)` named `Embeddings_OpenAI`
+- OpenAI API key with access to the embeddings API
+- Environment variables in `.env`:
+  ```
+  SUPABASE_URL=your_supabase_url
+  SUPABASE_KEY=your_supabase_key
+  OPENAI_API_KEY=your_openai_key
+  ```
+
+### Using Embeddings for Searches
+
+Once embeddings are generated, you can perform semantic searches using SQL in Supabase:
+
+```sql
+SELECT id, text, 1 - ("Embeddings_OpenAI" <=> '[0.023,0.012,...]'::vector) as similarity 
+FROM "Embedded_propositions"
+ORDER BY "Embeddings_OpenAI" <=> '[0.023,0.012,...]'::vector
+LIMIT 10;
+```
+
+Replace the vector with your query embedding to find the most semantically similar propositions.
+
 ## Setup
 
 ### Prerequisites
