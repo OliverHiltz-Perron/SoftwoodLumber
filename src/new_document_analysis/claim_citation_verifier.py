@@ -75,6 +75,41 @@ def rank_and_annotate_propositions(client, prompt_template, claim, propositions)
             ranked = []
     return ranked
 
+def normalize_text(text):
+    """Normalize text to improve matching by removing Unicode escapes, etc."""
+    # Replace Unicode escapes with their character equivalents
+    text = text.replace("\\u2019", "'")  # Right single quotation mark
+    text = text.replace("\\u2018", "'")  # Left single quotation mark
+    text = text.replace("\\u201c", "\"")  # Left double quotation mark
+    text = text.replace("\\u201d", "\"")  # Right double quotation mark
+    # Remove extra whitespace
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+def find_best_match(proposition, matches):
+    """Find the best matching original proposition using fuzzy matching."""
+    normalized_prop = normalize_text(proposition)
+    best_match = None
+    highest_similarity = 0
+    
+    for match in matches:
+        db_prop = match.get("db_propositions", "")
+        normalized_db_prop = normalize_text(db_prop)
+        
+        # Check for exact match after normalization
+        if normalized_prop == normalized_db_prop:
+            return match
+        
+        # Calculate similarity (simple character overlap for now)
+        common_chars = sum(1 for c in normalized_prop if c in normalized_db_prop)
+        similarity = common_chars / max(len(normalized_prop), len(normalized_db_prop))
+        
+        if similarity > highest_similarity and similarity > 0.8:  # 80% threshold
+            highest_similarity = similarity
+            best_match = match
+    
+    return best_match
+
 def main():
     parser = argparse.ArgumentParser(description='Rank and annotate claim citations using LLM.')
     parser.add_argument('-i', '--input', type=str, default="output/WoodAsBuildingMaterial_claim_matches.json", help='Input claim matches JSON file')
@@ -110,18 +145,21 @@ def main():
         # Attach the original match metadata to the ranked output
         ranked_with_ids = []
         for r in ranked:
-            # Find the original match for this proposition
-            match = next((m for m in matches if m.get("db_propositions", "") == r["proposition"]), None)
+            # Find the original match for this proposition using improved matching
+            match = find_best_match(r["proposition"], matches)
+            
             if match:
                 ranked_with_ids.append({
                     "proposition": r["proposition"],
                     "rank": r["rank"],
                     "evidence_strength": r["evidence_strength"],
                     "id": match.get("id", ""),
-                    "similarity": match.get("similarity"),
+                    "similarity": match.get("similarity", ""),
                     "file_name": match.get("file_name", "")
                 })
             else:
+                # If no match is found, print a warning
+                print(f"WARNING: No match found for proposition: {r['proposition']}", file=sys.stderr)
                 ranked_with_ids.append({
                     "proposition": r["proposition"],
                     "rank": r.get("rank", ""),
